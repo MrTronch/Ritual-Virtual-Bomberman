@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+  <meta name="theme-color" content="#12141c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bomberman" />
+  <title>Ritual Virtual · Bomberman</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <aside id="rotate-notice" role="dialog" aria-label="Jugar en horizontal"><span aria-hidden="true">↻</span><h2>JUEGA EN HORIZONTAL</h2><p>Gira tu teléfono para dejar el mapa libre y los controles a los lados.</p><button type="button" id="rotate-start">ABRIR EN HORIZONTAL</button><small>Si no gira automáticamente, gira el teléfono.</small></aside>
+    <header id="hud">
+      <div id="hud-center">
+        <button type="button" id="spectator-speed" hidden>Acelerar ×4</button>
+        <button type="button" id="fullscreen-button" title="Pantalla completa" aria-label="Maximizar pantalla">⛶ Maximizar</button>
+        <span class="hud-stat" title="Level"><span id="hud-level-label">LEVEL</span> <b id="hud-level">1</b></span>
+        <span class="hud-stat timer" title="Time left">&#9201; <b id="hud-time">200</b></span>
+        <button type="button" id="sound-button" title="Activar o silenciar efectos (V)">SONIDO: ON</button>
+      </div>
+      <div id="hud-players"></div>
+    </header>
+
+    <main id="stage">
+      <canvas id="game" width="720" height="624"></canvas>
+
+      <div id="overlay" class="visible">
+        <img id="ritual-logo" src="assets/ritual-logo-pixel.webp" alt="Ritual Virtual" />
+        <h1 id="overlay-title">BOMBERMAN</h1>
+        <p id="overlay-text"></p>
+        <div id="overlay-buttons"></div>
+        <div id="overlay-help"></div>
+      </div>
+    </main>
+
+    <div id="touch">
+      <div id="dpad" aria-label="Move">
+        <span class="dpad-arrow up">&#9650;</span>
+        <span class="dpad-arrow right">&#9654;</span>
+        <span class="dpad-arrow down">&#9660;</span>
+        <span class="dpad-arrow left">&#9664;</span>
+        <span class="dpad-center"></span>
+      </div>
+      <div id="touch-actions">
+        <div class="touch-row">
+          <button type="button" class="tbtn small" data-code="Space" aria-label="Pause">&#10074;&#10074;</button>
+          <button type="button" class="tbtn small" id="touch-glove" data-code="KeyN" aria-label="Guante: agarrar y lanzar" hidden><canvas id="touch-glove-icon" width="48" height="48" aria-hidden="true"></canvas></button>
+          <button type="button" class="tbtn small hidden" id="touch-detonate" data-code="KeyE" aria-label="Detonate">&#128225;</button>
+        </div>
+        <button type="button" class="tbtn bomb" data-code="KeyM" aria-label="Bomb">&#128163;</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/constants.js"></script>
+  <script src="js/pixel-items.js"></script>
+  <script src="js/pixel-fx.js"></script>
+  <script src="js/characters.js"></script>
+  <script src="js/character-sprites.js"></script>
+  <script src="js/selection-art.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/music-silent.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/touch.js"></script>
+  <script src="js/gamepad.js"></script>
+  <script src="js/level.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/bot.js"></script>
+  <script src="js/enemy-sprites.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/update-content.js"></script>
+  <script src="js/arena-art.js"></script>
+  <script src="js/revenge-ships.js"></script>
+  <script src="js/battle-drops.js"></script>
+  <script src="js/entity-glove.js"></script>
+  <script src="js/celebration-frames.js"></script>
+  <script src="js/victory-art.js"></script>
+  <script src="js/max-power-arena.js"></script>
+  <script src="js/deathmatch.js"></script>
+  <script src="js/deathmatch-sprites.js"></script>
+  <script src="js/defeat-animation.js"></script>
+  <script src="js/ship-expiry.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+const CelebrationFrames = {"width": 1756, "height": 896, "characters": {"psicogato": {"rects": [[95, 10, 191, 263], [92, 299, 188, 254], [85, 595, 201, 289]], "width": 213, "height": 301}, "bunnylicious": {"rects": [[364, 10, 223, 266], [356, 303, 227, 253], [358, 603, 229, 281]], "width": 241, "height": 293}, "perrotech": {"rects": [[661, 12, 193, 263], [651, 301, 199, 263], [641, 604, 202, 280]], "width": 214, "height": 292}, "sazonix": {"rects": [[922, 8, 197, 268], [916, 297, 199, 272], [915, 602, 203, 283]], "width": 215, "height": 295}, "sr-mr": {"rects": [[1203, 28, 182, 250], [1187, 314, 206, 251], [1185, 616, 202, 268]], "width": 218, "height": 280}, "michia": {"rects": [[1476, 17, 186, 258], [1470, 302, 194, 258], [1463, 604, 207, 280]], "width": 219, "height": 292}}};
+CelebrationFrames.markup=function(id,source){
+  const data=CelebrationFrames.characters[id];if(!data)return '';
+  return data.rects.map(([x,y,w,h],i)=>{const vx=x-(data.width-w)/2,vy=y-(data.height-h),key='clip-'+id+'-'+i;
+   return `<svg class="celebration-frame frame-${i}" viewBox="${vx} ${vy} ${data.width} ${data.height}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet"><defs><clipPath id="${key}"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath></defs><image href="${source}" width="${CelebrationFrames.width}" height="${CelebrationFrames.height}" clip-path="url(#${key})"/></svg>`;
+  }).join('');
+ };
