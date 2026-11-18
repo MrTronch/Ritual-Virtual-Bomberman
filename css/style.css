@@ -958,3 +958,28 @@ body.controller-only #touch{display:none!important;}
 /* Glove silhouette only, with an accessible name retained on the button. */
 #touch-glove:not([hidden]),body.touch-ui #touch-glove:not([hidden]){width:62px;min-width:62px;height:62px;min-height:62px;padding:6px;border-radius:50%;}
 #touch-glove-icon{width:46px;height:46px;}
+
+/* Rules first, large map previews second, on both desktop and mobile. */
+#overlay-buttons.battle-rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:min(900px,90%);}
+#overlay-buttons.battle-rules>button{min-height:42px;padding:10px 16px;font-size:clamp(9px,1.4cqw,14px);text-align:left;}
+#overlay-buttons.battle-rules>.battle-continue,#overlay-buttons.battle-rules>.battle-back{text-align:center;}
+.battle-continue{background:#b9ff65!important;color:#241438!important;border-color:#dcffac!important;}
+#overlay-buttons.battle-maps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;width:92%;}
+#overlay-buttons.battle-maps>.map-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-width:0;padding:12px;font-size:clamp(9px,1.5cqw,17px);}
+#overlay-buttons.battle-maps>.map-card canvas{display:block;width:100%;height:auto;max-height:35cqh;image-rendering:pixelated;object-fit:contain;}
+#overlay-buttons.battle-maps>.map-card[aria-pressed="true"]{border-color:#b9ff65;background:#49305e;box-shadow:0 3px #8bb454;}
+#overlay-buttons.battle-maps>.battle-play{grid-column:1/3;min-height:48px;background:#b9ff65;color:#241438;font-size:clamp(12px,2cqw,20px);}
+#overlay-buttons.battle-maps>.battle-back{grid-column:3;min-height:48px;}
+body.touch-ui .tbtn.bomb,body.touch-ui #touch-glove{box-sizing:border-box;aspect-ratio:1;flex:none;border-radius:50%!important;width:clamp(58px,17vh,80px)!important;height:clamp(58px,17vh,80px)!important;min-width:0!important;min-height:0!important;padding:6px;}
+body.touch-ui #dpad{width:min(35vh,145px,calc(var(--control-rail,150px) - 4px))!important;justify-self:start;margin-left:0;overflow:visible;}
+.dpad-center{position:absolute;left:50%;top:50%;width:42%;height:42%;margin:0;border:2px solid #bb91e8;border-radius:50%;background:radial-gradient(circle at 35% 25%,#68527d,#2e213e 72%);box-shadow:0 5px 0 #100a1d,0 7px 14px #0008;transform:translate(calc(-50% + var(--stick-x,0px)),calc(-50% + var(--stick-y,0px)));transition:transform .12s ease-out;pointer-events:none;}
+#dpad.engaged .dpad-center{transition:none;border-color:#caff8b;}
+#dpad .dpad-arrow{opacity:.35;font-size:16px;pointer-events:none;}
+@media(orientation:landscape) and (max-height:600px){#overlay-buttons.battle-rules{gap:7px;width:92%;}#overlay-buttons.battle-rules>button{min-height:30px;padding:7px 9px;font-size:clamp(8px,1.6cqw,12px);}#overlay-buttons.battle-maps{gap:10px;width:95%;}#overlay-buttons.battle-maps>.map-card{padding:8px 5px;gap:8px;}#overlay-buttons.battle-maps>.map-card canvas{max-height:36cqh;}#overlay-buttons.battle-maps>.battle-play,#overlay-buttons.battle-maps>.battle-back{min-height:36px;padding:7px;}}
+
+.touch-gun-icon{display:block;width:80%;height:80%;margin:auto;image-rendering:pixelated;pointer-events:none;}
+#overlay-buttons.battle-maps{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+#overlay-buttons.battle-maps>.map-card{padding:8px;gap:6px;}
+#overlay-buttons.battle-maps>.map-card canvas{max-height:20cqh;width:100%;}
+#overlay-buttons.battle-maps>.battle-play,#overlay-buttons.battle-maps>.battle-back{grid-column:auto;}
+@media(orientation:landscape) and (max-height:600px){#overlay-buttons.battle-maps{gap:6px;}#overlay-buttons.battle-maps>.map-card canvas{max-height:18cqh;}#overlay-buttons.battle-maps>.map-card{font-size:9px;padding:5px;}#overlay-buttons.battle-maps>.battle-play,#overlay-buttons.battle-maps>.battle-back{min-height:30px;}}
