@@ -16,7 +16,7 @@ const Save = {
       difficulty: 'normal',
       characters: { p1: 'psicogato', p2: 'bunnylicious', p3: 'perrotech', p4: 'sazonix' },
       progress: { easy: 1, normal: 1, hard: 1 }, // worlds unlocked per difficulty
-      battle: { humans: 1, bots: 1, skill: 'normal', map: 'small' },
+      battle: { humans: 1, bots: 3, skill: 'normal', map: 'small' },
       touchUI: null, // null = auto-detect, true/false = forced
       highScores: { easy: 0, normal: 0, hard: 0 },
       bestLevel: { easy: 0, normal: 0, hard: 0 },

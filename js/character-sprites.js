@@ -1,13 +1,13 @@
 // Faithful direction-specific atlases. Never mirror asymmetrical characters.
 Object.assign(RitualSprites, {
-  walkSheets: Object.fromEntries(CHARACTERS.filter(c=>c.enabled).map(c=>[c.id,Object.assign(new Image(),{src:c.id==='max'?'assets/update-v10/max-walk.webp':`${c.id}-walk-matte.webp`})])),
-  michiaPortrait: Object.assign(new Image(),{src:'assets/characters-v4/michia-portrait-matte.webp'}),
-  michiaDeath: Object.assign(new Image(),{src:'assets/characters-v4/michia-death.webp'}),
-  maxDeath: Object.assign(new Image(),{src:'assets/update-v10/max-death.webp'}),
+  walkSheets: Object.fromEntries(CHARACTERS.filter(c=>c.enabled).map(c=>[c.id,Object.assign(new Image(),{src:c.id==='max'?'assets/personajes/caminata/max-walk.webp':`assets/personajes/caminata/${c.id}-walk-matte.webp`})])),
+  michiaPortrait: Object.assign(new Image(),{src:'assets/personajes/seleccion/michia-portrait-matte.webp'}),
+  michiaDeath: Object.assign(new Image(),{src:'assets/personajes/derrotas/michia-death.webp'}),
+  maxDeath: Object.assign(new Image(),{src:'assets/personajes/derrotas/max-death.webp'}),
   maxDeathRects: [[58, 66, 190, 326], [358, 66, 194, 324], [633, 75, 264, 317], [945, 80, 277, 316], [35, 464, 242, 339], [327, 462, 263, 343], [635, 464, 261, 342], [949, 532, 248, 256], [12, 889, 290, 287], [323, 890, 294, 277], [647, 900, 264, 258], [990, 946, 201, 180]],
   portraitSource(id){if(id==='max')return this.walkSheets.max;return id==='michia'?this.michiaPortrait:this.portraits;},
-  portraits: Object.assign(new Image(),{src:'assets/characters-v4/portraits-matte.webp'}),
-  deathAtlas: Object.assign(new Image(),{src:'assets/characters-v4/death-12.webp'}),
+  portraits: Object.assign(new Image(),{src:'assets/personajes/seleccion/portraits-matte.webp'}),
+  deathAtlas: Object.assign(new Image(),{src:'assets/personajes/derrotas/death-12.webp'}),
   deathRects: [[[2,2,158,158],[164,2,158,158],[326,2,161,158],[491,2,159,158],[654,2,171,158],[829,2,159,158],[992,2,150,158],[1146,2,149,158],[1299,2,171,158],[1474,2,144,158],[1622,2,158,158],[1784,2,158,158]],[[2,164,158,154],[164,164,167,154],[335,164,165,154],[504,164,160,154],[668,164,158,154],[830,164,157,154],[991,164,159,154],[1154,164,141,154],[1299,164,169,154],[1472,164,146,154],[1622,164,158,154],[1784,164,158,154]],[[2,322,158,156],[164,322,158,156],[326,322,161,156],[491,322,163,156],[658,322,165,156],[827,322,161,156],[992,322,152,156],[1148,322,146,156],[1298,322,172,156],[1474,322,145,156],[1623,322,157,156],[1784,322,158,156]],[[2,482,158,158],[164,482,158,158],[326,482,158,158],[488,482,160,158],[652,482,163,158],[819,482,164,158],[987,482,153,158],[1144,482,151,158],[1299,482,170,158],[1473,482,145,158],[1622,482,158,158],[1784,482,158,158]],[[2,644,158,163],[164,644,158,163],[326,644,162,163],[492,644,164,163],[660,644,164,163],[828,644,160,163],[992,644,155,163],[1151,644,144,163],[1299,644,171,163],[1474,644,144,163],[1622,644,158,163],[1784,644,158,163]],[[0,0,362,362],[362,0,362,362],[724,0,362,362],[1086,0,362,362],[0,362,362,362],[362,362,362,362],[724,362,362,362],[1086,362,362,362],[0,724,362,362],[362,724,362,362],[724,724,362,362],[1086,724,362,362]]],
   deathBodyRects: [[[50,15,97,131],[224,15,94,131],[390,15,97,131],[554,15,96,131],[708,10,117,138],[873,8,115,141],[1050,15,92,132]],[[34,164,126,148],[208,164,123,148],[377,164,123,148],[538,164,126,148],[703,164,123,148],[868,164,119,149],[1036,164,114,148]],[[47,322,102,149],[219,322,102,149],[388,322,99,149],[551,322,103,149],[710,322,113,150],[877,322,111,150],[1049,322,95,149]],[[51,482,94,150],[225,482,91,150],[391,482,93,150],[555,482,93,150],[716,482,99,147],[883,482,100,147],[1052,482,88,151]],[[46,644,105,146],[219,644,103,146],[387,644,101,146],[549,644,107,146],[710,644,114,146],[873,644,115,148],[1047,644,100,146]],[[122,37,161,314],[470,37,162,314],[801,42,178,306],[1153,36,183,314],[101,394,207,317],[443,394,220,317],[790,399,215,312]]],
   frameCache: new Map(),
@@ -62,7 +62,7 @@ Object.assign(RitualSprites, {
     ctx.drawImage(source,sx,sy,sw,sh,(w-dw)/2,(h-dh)/2,dw,dh);
     return true;
   },
-  detailSheet:Object.assign(new Image(),{src:'assets/characters-v16/selection-carry-v2.webp'}),
+  detailSheet:Object.assign(new Image(),{src:'assets/personajes/guante/selection-carry-v2.webp'}),
   detailRects:[[[52, 43, 124, 168], [264, 37, 119, 172], [468, 37, 119, 172], [673, 36, 111, 174], [882, 35, 117, 175]], [[42, 252, 149, 171], [246, 238, 150, 185], [449, 240, 151, 183], [658, 240, 133, 183], [869, 240, 134, 183]], [[50, 451, 136, 168], [257, 451, 130, 168], [465, 451, 123, 167], [676, 451, 99, 168], [892, 449, 100, 170]], [[51, 655, 130, 168], [254, 653, 134, 170], [458, 654, 135, 169], [661, 649, 126, 174], [877, 649, 126, 174]], [[52, 856, 130, 166], [253, 852, 134, 169], [458, 853, 138, 168], [659, 854, 128, 167], [876, 853, 128, 168]], [[52, 1055, 125, 175], [257, 1052, 130, 178], [459, 1051, 133, 179], [670, 1049, 109, 181], [877, 1050, 113, 180]], [[48, 1265, 129, 187], [250, 1265, 134, 187], [458, 1265, 130, 187], [661, 1266, 129, 186], [869, 1265, 129, 187]]],
   detailFrame(id,column=0){const source=this.detailSheet,row=this.portraitIndex.indexOf(id);if(!source.complete||!source.naturalWidth||row<0)return null;return {source,rect:this.detailRects[row][column],key:`detail:${id}:${column}`};},
   paintDetailed(ctx,frame,x,y,w,h){const [sx,sy,sw,sh]=frame.rect,k=Math.min(w/sw,h/sh);ctx.imageSmoothingEnabled=false;ctx.drawImage(frame.source,sx,sy,sw,sh,x+(w-sw*k)/2,y+h-sh*k,sw*k,sh*k);},

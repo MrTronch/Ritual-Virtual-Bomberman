@@ -16,7 +16,7 @@ const EntityGlove={
   if(!e.alive)return;if(!this.land(g,e,{x:p.tx,y:p.ty})){e.gloveFlight={sx:p.x,sy:p.y,tx:p.tx,ty:p.ty,age:0,duration:.4};}
  },
  paint(ctx,e,g,x,y){
-  ctx.save();if(e instanceof Player){const f=(typeof Deathmatch!=='undefined'&&Deathmatch.active(g)?DeathmatchSprites.frame(e.character,e.facing||'down'):null)||RitualSprites.walkFrame(e.character,e.facing||'down',0);if(f){const [sx,sy,sw,sh]=f.rect,k=Math.min(39/sw,42/sh);ctx.drawImage(f.source,sx,sy,sw,sh,x-sw*k/2,y-sh*k,sw*k,sh*k);}}
+  ctx.save();if(e instanceof Player){const f=(typeof Deathmatch!=='undefined'&&Deathmatch.active(g)?DeathmatchSprites.frame(e.character,e.facing||'down'):null)||RitualSprites.walkFrame(e.character,e.facing||'down',0);if(f){const [sx,sy,sw,sh]=f.rect,k=Math.min(47/sw,58/sh);ctx.drawImage(f.source,sx,sy,sw,sh,x-sw*k/2,y-sh*k,sw*k,sh*k);}}
   else{ctx.translate(x-e.x,y-18-e.y);PixelEnemies.draw(ctx,e,g);}ctx.restore();
  }
 };
@@ -33,13 +33,13 @@ Game.prototype.useGlove=function(p){
  const candidates=(this.mode===1?this.enemies:this.players.filter(e=>e!==p&&!(this.settings.battle.formation==='teams'&&e.team===p.team))).filter(e=>e.alive&&!e.dying&&!e.carriedBy&&!e.gloveFlight&&!e.portalTransit&&!e.held);
  const target=candidates.filter(e=>{const dx=e.x-p.x,dy=e.y-p.y;return Math.hypot(dx,dy)<=TILE*1.35&&dx*v.dx+dy*v.dy>0&&Math.abs(dx*v.dy-dy*v.dx)<TILE*.65;}).sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y))[0];
  if(!target)return gloveBeforeEntities.call(this,p);
- target.carriedBy=p;target.target=null;target.moveTarget=null;target.moving=false;p.held={kind:'entity',object:target};this.sfx.placeBomb();return true;
+ target.carriedBy=p;target.target=null;target.moveTarget=null;target.moving=false;p.held={kind:'entity',object:target,age:0};this.sfx.placeBomb();return true;
 };
 const hazardsBeforeGlove=Game.prototype.updateArenaHazards;
 Game.prototype.updateArenaHazards=function(dt){
  hazardsBeforeGlove.call(this,dt);
  for(const p of this.players)if(p.held?.kind==='entity'){
-  if(!p.alive){EntityGlove.release(this,p);continue;}const e=p.held.object;e.x=p.x;e.y=p.y;e.facing=p.facing;
+  if(!p.alive){EntityGlove.release(this,p);continue;}p.held.age=(p.held.age||0)+dt;if(p.held.age>=2){const e=p.held.object,d=DIRS[p.facing]||DIRS.down;if(EntityGlove.land(this,e,{x:p.tx+d.dx,y:p.ty+d.dy}))p.held=null;continue;}const e=p.held.object;e.x=p.x;e.y=p.y;e.facing=p.facing;
  }
  for(const e of EntityGlove.all(this))if(e.gloveFlight){const f=e.gloveFlight;f.age+=dt;if(f.age>=f.duration&&!EntityGlove.land(this,e,{x:f.tx,y:f.ty})){
   e.gloveFlight=null;if(e instanceof Player)this.killPlayer(e,true);else this.killEnemy(e,null);

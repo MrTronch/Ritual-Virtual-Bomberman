@@ -1,8 +1,8 @@
 // Supplied November update: item atlas, arena rules and the two battle arenas.
 const UpdateContent = {
- chargeImage:Object.assign(new Image(),{src:'assets/update-v11/charges-transparent.webp'}),
+ chargeImage:Object.assign(new Image(),{src:'assets/objetos/charges-transparent.webp'}),
  chargeRects:{"tnt": [222, 114, 476, 664], "napalm": [1054, 182, 539, 585]},
- itemImage:Object.assign(new Image(),{src:'assets/update-v10/items.webp'}),
+ itemImage:Object.assign(new Image(),{src:'assets/objetos/items.webp'}),
  itemRects:{"bomb": [38, 19, 318, 313], "fire": [390, 19, 317, 313], "speed": [740, 19, 318, 313], "kick": [1091, 19, 319, 312], "wallpass": [39, 376, 317, 314], "life": [390, 377, 317, 312], "skull": [740, 377, 318, 312], "glove": [1092, 377, 318, 313], "random": [39, 735, 317, 317], "tnt": [390, 735, 317, 317], "napalm": [740, 735, 318, 317], "snail": [1092, 735, 318, 317]},
  loadImage(src){return Object.assign(new Image(),{src});}
 };
@@ -215,8 +215,8 @@ Game.prototype.updateArenaHazards=function(dt){
 const baseSetupLevel=Game.prototype.setupLevel;
 Game.prototype.setupLevel=function(){this.settings.battle.map='small';baseSetupLevel.call(this);this.configureArenaContent();this.ensureCampaignExit();};
 
-const baseSaveDefaults=Save.defaults.bind(Save);Save.defaults=function(){const s=baseSaveDefaults();s.battle.stage='ritual';s.battle.duration=120;s.battle.extreme=true;s.battle.extremeDefaultsVersion=1;s.battle.combat='classic';s.campaignCombat='classic';s.battle.format='cup';s.battle.formation='free';s.battle.teams=[0,1,0,1];return s;};
-const baseSanitize=Save.sanitize.bind(Save);Save.sanitize=function(s){baseSanitize(s);s.battle.map='small';if(!['classic','deathmatch'].includes(s.campaignCombat))s.campaignCombat='classic';if(!['classic','deathmatch'].includes(s.battle.combat))s.battle.combat='classic';if(s.battle.combat==='deathmatch'&&s.battle.stage==='overdrive')s.battle.stage='ritual';if(typeof s.battle.extreme!=='boolean')s.battle.extreme=true;if(![90,120,150,180].includes(s.battle.duration))s.battle.duration=120;if(!['ritual','jurassic','overdrive'].includes(s.battle.stage))s.battle.stage='ritual';if(!['single','cup'].includes(s.battle.format))s.battle.format='cup';if(!['free','teams'].includes(s.battle.formation))s.battle.formation='free';if(!Array.isArray(s.battle.teams)||s.battle.teams.length!==4||s.battle.teams.filter(t=>t===0).length!==2||s.battle.teams.filter(t=>t===1).length!==2)s.battle.teams=[0,1,0,1];return s;};
+const baseSaveDefaults=Save.defaults.bind(Save);Save.defaults=function(){const s=baseSaveDefaults();s.battle.stage='ritual';s.battle.duration=120;s.battle.extreme=true;s.battle.extremeDefaultsVersion=1;s.battle.cpuDefaultsVersion=1;s.battle.combat='classic';s.campaignCombat='classic';s.battle.format='cup';s.battle.formation='free';s.battle.teams=[0,1,0,1];return s;};
+const baseSanitize=Save.sanitize.bind(Save);Save.sanitize=function(s){baseSanitize(s);s.battle.map='small';if(!['classic','deathmatch'].includes(s.campaignCombat))s.campaignCombat='classic';if(!['classic','deathmatch'].includes(s.battle.combat))s.battle.combat='classic';if(s.battle.combat==='deathmatch'&&s.battle.stage==='overdrive')s.battle.stage='ritual';if(typeof s.battle.extreme!=='boolean')s.battle.extreme=true;if(![90,120,150,180].includes(s.battle.duration))s.battle.duration=120;if(!['ritual','jurassic','overdrive','inca'].includes(s.battle.stage))s.battle.stage='ritual';if(!['single','cup'].includes(s.battle.format))s.battle.format='cup';if(!['free','teams'].includes(s.battle.formation))s.battle.formation='free';if(!Array.isArray(s.battle.teams)||s.battle.teams.length!==4||s.battle.teams.filter(t=>t===0).length!==2||s.battle.teams.filter(t=>t===1).length!==2)s.battle.teams=[0,1,0,1];return s;};
 Game.prototype.showBattleSetup=function(){
  this.state='setup';const b=this.settings.battle,teams=b.formation==='teams',minBots=Math.max(0,2-b.humans),maxBots=4-b.humans;
  b.bots=teams?maxBots:Math.min(maxBots,Math.max(minBots,b.bots));b.map='small';
@@ -234,18 +234,20 @@ Game.prototype.showBattleSetup=function(){
  option(`COMBATE: ${b.combat==='deathmatch'?'DEATHMATCH':'BOMBAS'}`,d=>{move('combat',['classic','deathmatch'],d);if(b.combat==='deathmatch'&&b.stage==='overdrive')b.stage='ritual';})
  ];
  if(teams)for(let i=0;i<4;i++)settings.push(option(`${i<b.humans?'J'+(i+1):'CPU'+(i-b.humans+1)}: EQUIPO ${b.teams[i]===0?'A':'B'}`,()=>{const other=b.teams.findIndex((t,j)=>j!==i&&t!==b.teams[i]);[b.teams[i],b.teams[other]]=[b.teams[other],b.teams[i]];}));
- const stages=['ritual','jurassic','overdrive'];
- this.ui.showOverlay({title:'BATALLA',text:b.combat==='deathmatch'?'DEATHMATCH · 10 PV · NPC · Disparo 0,5 s · Carga 1,5 s':'Elige las reglas y el escenario.',buttons:[
- ...settings,...stages.map(stage=>({label:(stage==='ritual'?'RITUAL VIRTUAL':stage==='jurassic'?'JURÁSICO':'PODER MÁXIMO')+(b.stage===stage?' ✓':''),disabled:b.combat==='deathmatch'&&stage==='overdrive',action:()=>{b.stage=stage;cycle();}})),
- {label:b.humans>1&&!this.controllersReady()?'CONECTA '+this.requiredControllers()+' MANDO'+(this.requiredControllers()>1?'S':'')+' · START':'▶ JUGAR',disabled:b.humans>1&&!this.controllersReady(),action:()=>this.startBattle()},{label:'VOLVER',back:true,action:()=>this.showTitle()}],help:'↑ ↓ Elegir opción · ← → Cambiar valor · A / X Confirmar · B / ○ Volver'});
- this.ui.overlayButtons.classList.add('battle-grid','battle-config');
- const span=Math.ceil(settings.length/3),rows=span*3;
- this.ui.overlayButtons.style.setProperty('--battle-rows',rows);
- this.ui.buttons.forEach((entry,i)=>{const btn=entry.el;
-  if(i<settings.length){btn.classList.add('battle-setting');btn.style.gridColumn='1';btn.style.gridRow=String(i+1);btn.title='Izquierda / derecha para cambiar';if(i===7)btn.setAttribute('aria-pressed',String(b.combat==='deathmatch'));}
-  else if(i<settings.length+3){const j=i-settings.length,stage=stages[j];btn.classList.add('world-choice');btn.style.gridColumn='2';btn.style.gridRow=`${j*span+1} / span ${span}`;btn.setAttribute('aria-pressed',String(b.stage===stage));const c=document.createElement('canvas');c.width=192;c.height=84;btn.prepend(c);const paint=()=>ArenaArt.worldPreview(c.getContext('2d'),stage,192,84);paint();if(ArenaArt[stage]&&!ArenaArt[stage].complete)ArenaArt[stage].addEventListener('load',paint,{once:true});}
-  else{btn.classList.add(i===settings.length+3?'battle-play':'battle-back');btn.style.gridColumn=i===settings.length+3?'1':'2';btn.style.gridRow=String(rows+1);}
- });
+ this.ui.showOverlay({title:'BATALLA',text:'CONFIGURA LA PARTIDA · PASO 1 DE 2',buttons:[...settings,
+ {label:'CONTINUAR',action:()=>{this.saveSettings();this.showBattleMaps();}},
+ {label:'VOLVER',back:true,action:()=>this.showTitle()}],help:'Elige las reglas; después selecciona el mapa.'});
+ this.ui.overlayButtons.classList.add('battle-rules');
+ this.ui.buttons.forEach((entry,i)=>entry.el.classList.add(i<settings.length?'battle-setting':i===settings.length?'battle-continue':'battle-back'));
+};
+Game.prototype.showBattleMaps=function(){
+ this.state='setup';const b=this.settings.battle,stages=['ritual','jurassic','overdrive','inca'],labels=['RITUAL VIRTUAL','JURÁSICO','UKU PACHA','SANTUARIO DEL INTI'];
+ this.ui.showOverlay({title:'MAPAS DE BATALLA',text:'PASO 2 DE 2 · '+b.humans+' HUMANO'+(b.humans>1?'S':'')+' · '+b.bots+' CPU',buttons:[
+ ...stages.map((stage,i)=>({label:labels[i]+(b.stage===stage?' ✓':''),disabled:b.combat==='deathmatch'&&stage==='overdrive',action:()=>{b.stage=stage;this.saveSettings();this.showBattleMaps();this.ui.focusButton(i);}})),
+ {label:this.controllersReady()?'▶ JUGAR':'CONECTA '+this.requiredControllers()+' MANDO'+(this.requiredControllers()>1?'S':'')+' · START',disabled:!this.controllersReady(),action:()=>this.startBattle()},
+ {label:'VOLVER A LAS REGLAS',back:true,action:()=>this.showBattleSetup()}],help:b.combat==='deathmatch'?'Uku Pacha no está disponible en Deathmatch.':'Selecciona el escenario y pulsa Jugar.'});
+ this.ui.overlayButtons.classList.add('battle-maps');
+ this.ui.buttons.forEach((entry,i)=>{const btn=entry.el;if(i<stages.length){const stage=stages[i];btn.classList.add('map-card');btn.setAttribute('aria-pressed',String(stage===b.stage));const c=document.createElement('canvas');c.width=384;c.height=192;btn.prepend(c);const paint=()=>ArenaArt.worldPreview(c.getContext('2d'),stage,384,192);paint();if(ArenaArt[stage]&&!ArenaArt[stage].complete)ArenaArt[stage].addEventListener('load',paint,{once:true});}else btn.classList.add(i===stages.length?'battle-play':'battle-back');});
 };
 Game.prototype.roundOver=function(winner){
  this.state='roundover';this.music.stop();const b=this.settings.battle,teams=b.formation==='teams',target=b.format==='single'?1:3;
@@ -264,7 +266,10 @@ Game.prototype.roundOver=function(winner){
 
 Bot.prototype.inBlast=function(game,bx,by,range,tx,ty){return game.blastCells(bx,by,range,this.player.bombKind).some(c=>c.x===tx&&c.y===ty);};
 
-Game.prototype.showHelp=function(){this.state='setup';this.ui.showOverlay({title:'CÓMO JUGAR',text:'DEATHMATCH: M dispara (J2: Enter), cada 0,5 s; mantener 1,5 s carga daño 4 y soltar dispara. 10 PV; láser 1, napalm 2, púas 4, bomba de nave 3. Corazón +5 PV. TNT: área 3×3. Los bloques resisten 3 impactos. NPC: 2 PV. Velocidad inicial 4. Bombas solo desde la nave: dos simultáneas, fuego 2. Sin ítem de fuego ni mapa Poder máximo.\n\nJ1: flechas / WASD · M: bomba · N: recoger/lanzar con guante.\nJ2: I J K L · Enter: bomba · O: guante.\nEspacio: pausa · Mandos: Start une J1/J2; X/cruz pone bomba; cuadrado recoge y lanza.\n\nTNT: cuadrado compacto (3×3, mejorado hasta 5×5); Napalm: fuego durante 4 s; TNT: fuego durante 1,5 s.\nCaracol: lentitud 5 s; Calavera: maldición 10 s.\nFantasma cruza ladrillos; el corazón protege de un golpe.\n\nBatalla: Single (una ronda) o Copa (3 victorias). Todos contra todos o equipos 2 vs 2 con fuego amigo; elige Ritual o Jurásico.\nPortales: izquierda ↔ derecha, arriba ↔ abajo.\nVolcán: lanza tres fuegos en arco a puntos aleatorios cada 12 s.\nRevancha: al morir pilotas una nave por los cuatro bordes con las flechas y mantienes M para cargar y sueltas para lanzar más lejos (J2: IJKL y Enter; mando: cruceta y X). Hasta dos bombas simultáneas por nave, fuego 2. Movimiento rápido y carga completa en 1,8 s. Una baja rival permite regresar antes de la caída de bloques.',buttons:[{label:'VOLVER',back:true,action:()=>this.showTitle()}]});};
+Game.prototype.showHelp=function(){this.state='setup';this.ui.showOverlay({title:'CÓMO JUGAR',text:'DEATHMATCH: M dispara (J2: Enter), cada 0,5 s; mantener 1,5 s carga daño 4 y soltar dispara. 10 PV; láser 1, napalm 2, púas 4, bomba de nave 3. Corazón +5 PV. TNT: área 3×3. Los bloques resisten 3 impactos. NPC: 2 PV. Velocidad inicial 4. Bombas solo desde la nave: dos simultáneas, fuego 2. Sin ítem de fuego ni mapa Uku Pacha.\n\nJ1: flechas / WASD · M: bomba · N: recoger/lanzar con guante.\nJ2: I J K L · Enter: bomba · O: guante.\nEspacio: pausa · Mandos: Start une J1/J2; X/cruz pone bomba; cuadrado recoge y lanza.\n\nTNT: cuadrado compacto (3×3, mejorado hasta 5×5); Napalm: fuego durante 4 s; TNT: fuego durante 1,5 s.\nCaracol: lentitud 5 s; Calavera: maldición 10 s.\nFantasma cruza ladrillos; el corazón protege de un golpe.\n\nBatalla: Single (una ronda) o Copa (3 victorias). Todos contra todos o equipos 2 vs 2 con fuego amigo; elige Ritual o Jurásico.\nPortales: izquierda ↔ derecha, arriba ↔ abajo.\nVolcán: lanza tres fuegos en arco a puntos aleatorios cada 12 s.\nRevancha: al morir pilotas una nave por los cuatro bordes con las flechas y mantienes M para cargar y sueltas para lanzar más lejos (J2: IJKL y Enter; mando: cruceta y X). Hasta dos bombas simultáneas por nave, fuego 2. Movimiento rápido y carga completa en 1,8 s. Una baja rival permite regresar antes de la caída de bloques.',buttons:[{label:'VOLVER',back:true,action:()=>this.showTitle()}]});};
 
 // Apply the requested default once to existing saves; later manual choices remain saved.
 const loadBeforeExtremeDefault=Save.load.bind(Save);Save.load=function(){let needsDefault=false;try{const raw=JSON.parse(window.localStorage.getItem(this.KEY)||"null");needsDefault=!!raw&&raw.battle?.extremeDefaultsVersion!==1;}catch{}const s=loadBeforeExtremeDefault();if(needsDefault){s.battle.extreme=true;s.battle.extremeDefaultsVersion=1;this.save(s);}return s;};
+
+// Fill the four battle slots once when upgrading; subsequent CPU choices are remembered.
+const loadBeforeCpuDefault=Save.load.bind(Save);Save.load=function(){let needsDefault=false;try{const raw=JSON.parse(window.localStorage.getItem(this.KEY)||"null");needsDefault=!!raw&&raw.battle?.cpuDefaultsVersion!==1;}catch{}const s=loadBeforeCpuDefault();if(needsDefault){s.battle.bots=Math.max(0,4-s.battle.humans);s.battle.cpuDefaultsVersion=1;this.save(s);}return s;};

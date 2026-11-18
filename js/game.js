@@ -188,7 +188,7 @@ class Game {
     this.settings.battle.bots=Math.min(4-this.settings.battle.humans,this.settings.battle.bots);this.saveSettings();
     if(live){for(let i=0;i<=slot;i++){const p=this.players[i];if(p){p.bot=null;p.keys=this.playerKeys(i);p.name=CHARACTERS.find(c=>c.id===p.character).name;}}this.ui.buildHud(this.players,2);this.ui.updateHud(this);}
     else if(this.lobby?.battle)this.showCharacterSelect(this.lobby.next,true,slot);
-    else if(['BATTLE','BATALLA'].includes(this.ui.overlayTitle.textContent))this.showBattleSetup();
+    else if(this.ui.overlayTitle.textContent==='MAPAS DE BATALLA')this.showBattleMaps();else if(['BATTLE','BATALLA'].includes(this.ui.overlayTitle.textContent))this.showBattleSetup();
     return true;
   }
 

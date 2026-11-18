@@ -33,6 +33,12 @@ class TouchControls {
     });
   }
 
+  moveStick(e){
+    const r=this.rect||this.pad.getBoundingClientRect(),dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2;
+    const distance=Math.hypot(dx,dy),limit=r.width*.28,k=distance>limit?limit/distance:1;
+    this.pad.style.setProperty('--stick-x',dx*k+'px');this.pad.style.setProperty('--stick-y',dy*k+'px');this.pad.classList.add('engaged');
+  }
+  resetStick(){this.pad.style.setProperty('--stick-x','0px');this.pad.style.setProperty('--stick-y','0px');this.pad.classList.remove('engaged');this.rect=null;}
   codesAt(e) {
     const r = this.rect || this.pad.getBoundingClientRect();
     const dx = e.clientX - (r.left + r.width / 2);
@@ -56,21 +62,22 @@ class TouchControls {
     const pad = this.pad;
     pad.addEventListener('pointerdown', (e) => {
       e.preventDefault();
+      if(this.active.size)return;
       this.rect = pad.getBoundingClientRect();
       try {
         pad.setPointerCapture(e.pointerId);
       } catch (err) {
         /* ignore */
       }
-      this.apply(e.pointerId, this.codesAt(e));
+      this.moveStick(e);this.apply(e.pointerId, this.codesAt(e));
     }, { passive: false });
     pad.addEventListener('pointermove', (e) => {
-      if (this.active.has(e.pointerId)) this.apply(e.pointerId, this.codesAt(e));
+      if (this.active.has(e.pointerId)){this.moveStick(e);this.apply(e.pointerId, this.codesAt(e));}
     }, { passive: false });
     const end = (e) => {
       if (!this.active.has(e.pointerId)) return;
       this.apply(e.pointerId, []);
-      this.active.delete(e.pointerId);
+      this.active.delete(e.pointerId);this.resetStick();
     };
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) pad.addEventListener(type, end);
   }
@@ -97,6 +104,7 @@ class TouchControls {
   }
 
   releaseAll() {
+    this.resetStick();
     for (const [id, codes] of this.active) {
       for (const c of codes) this.input.release(c);
       this.active.delete(id);

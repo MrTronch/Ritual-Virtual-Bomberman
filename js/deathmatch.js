@@ -2,12 +2,12 @@
 const Deathmatch={
  active(g){return !g.demo&&(g.mode===1?g.settings.campaignCombat==='deathmatch':g.mode===2&&g.settings.battle.combat==='deathmatch'&&g.settings.battle.stage!=='overdrive');},
  cooldown:.5,chargeSeconds:1.5,shotSpeed:620,
- equip(p){p.hp=10;p.maxHp=10;p.speedLevel=4;p.range=1;p.heartGuard=false;p.deathmatchArmed=true;p.speedDropBase=4;p.fireRateLevel=p.fireRateLevel||0;p.shotCooldown=0;p.shotCharge=0;p.shotCharging=false;p.bombKind='normal';},
+ equip(p){p.hp=15;p.maxHp=15;p.canPunch=true;p.speedLevel=4;p.range=1;p.heartGuard=false;p.deathmatchArmed=true;p.speedDropBase=4;p.fireRateLevel=p.fireRateLevel||0;p.shotCooldown=0;p.shotCharge=0;p.shotCharging=false;p.bombKind='normal';},
  fireInterval(p){return Math.max(.2,this.cooldown-(p.fireRateLevel||0)*.1);},
  eligible(e){return e.alive&&!e.carriedBy&&!e.gloveFlight&&!e.portalTransit;},
  hit(g,e,amount,owner,source=null){
   if(!this.eligible(e)||(e instanceof Player&&e.shield>0))return false;
-  e.hp=Math.max(0,(e.hp??(e instanceof Player?10:2))-amount);
+  e.hp=Math.max(0,(e.hp??(e instanceof Player?15:2))-amount);
   g.spawnParticles(e.x,e.y,5,['#a7fbff','#ffffff',e.color||'#ff80a0'],70);
   if(e.hp<=0){if(e instanceof Player)deathmatchKillPlayer.call(g,e,true,source);else deathmatchKillEnemy.call(g,e,owner);}
   return true;
@@ -52,7 +52,7 @@ const Deathmatch={
   targets.sort((a,b)=>Math.abs(a.x-p.x)+Math.abs(a.y-p.y)-Math.abs(b.x-p.x)-Math.abs(b.y-p.y));
   for(const e of targets){if(Math.abs(e.x-p.x)<17){p.facing=e.y<p.y?'up':'down';return;}if(Math.abs(e.y-p.y)<17){p.facing=e.x<p.x?'left':'right';return;}}
  },
- bar(ctx,e){const max=e.maxHp||(e instanceof Player?10:2),hp=e.hp??max,y=e.y-(e instanceof Player?57:37);ctx.fillStyle='#100d23';ctx.fillRect(e.x-23,y,46,6);ctx.fillStyle=e instanceof Player?'#62f4d0':'#ff83a2';ctx.fillRect(e.x-22,y+1,44*Math.max(0,hp)/max,4);},
+ bar(ctx,e){const max=e.maxHp||(e instanceof Player?15:2),hp=e.hp??max,y=e.y-(e instanceof Player?57:37);ctx.fillStyle='#100d23';ctx.fillRect(e.x-23,y,46,6);ctx.fillStyle=e instanceof Player?'#62f4d0':'#ff83a2';ctx.fillRect(e.x-22,y+1,44*Math.max(0,hp)/max,4);},
  drawBrickBars(ctx,g){
   for(const [key,hp] of g.brickHp||[]){const [x,y]=key.split(',').map(Number);if(g.grid[y]?.[x]!==TILE_BRICK)continue;ctx.fillStyle='#22182e';ctx.fillRect(x*TILE+8,y*TILE+39,32,4);ctx.fillStyle='#86f7ff';for(let i=0;i<hp;i++)ctx.fillRect(x*TILE+10+i*10,y*TILE+40,8,2);}
  },
@@ -72,7 +72,7 @@ Game.prototype.setupLevel=function(){deathmatchSetup.call(this);this.laserShots=
  for(const p of this.players)Deathmatch.equip(p);
  this.powerups=this.powerups.filter(p=>p.type!=='fire');
  for(const e of this.enemies)if(!e.isBoss)e.hp=e.maxHp=2;
- const spawns=this.players.map(p=>({x:p.tx,y:p.ty}));for(let n=0;n<(this.mode===2?6:0);n++){const e=this.spawnEnemy(['balloom','oneal','doll'][n%3],spawns,1);if(e){e.hp=e.maxHp=2;}}
+ const spawns=this.players.map(p=>({x:p.tx,y:p.ty}));for(let n=0;n<(this.mode===2?8:2);n++){const e=this.spawnEnemy(['balloom','oneal','doll'][n%3],spawns,1);if(e){e.hp=e.maxHp=2;}}
 };
 const deathmatchPlace=Game.prototype.tryPlaceBomb;
 Game.prototype.tryPlaceBomb=function(p){if(Deathmatch.active(this))return false;return deathmatchPlace.call(this,p);};
@@ -103,10 +103,10 @@ Game.prototype.resolveCollisions=function(){if(!Deathmatch.active(this))return d
 };
 const deathmatchCollect=Game.prototype.collectPowerUp;
 Game.prototype.collectPowerUp=function(p,pu){if(!Deathmatch.active(this))return deathmatchCollect.call(this,p,pu);
- if(pu.type==='random')pu.type=weightedPick(POWERUP_TABLE.filter(([type])=>!['fire','random'].includes(type)));
+ if(pu.type==='random')pu.type=typeof Inca!=='undefined'?weightedPick(Inca.drops):weightedPick(POWERUP_TABLE.filter(([type])=>!['fire','random'].includes(type)));if(pu.type==='thunder')pu.type='bomb';
  if(pu.type==='bomb'){this.powerups=this.powerups.filter(u=>u!==pu);p.fireRateLevel=Math.min(3,(p.fireRateLevel||0)+1);p.shotCooldown=Math.min(p.shotCooldown||0,Deathmatch.fireInterval(p));p.score+=50;this.floaters.push(new Floater('CADENCIA '+Deathmatch.fireInterval(p).toFixed(2)+' s',p.x,p.y-40,'#7cffff',12));this.sfx.powerup();return;}
  if(pu.type==='fire'){this.powerups=this.powerups.filter(u=>u!==pu);return;}
- if(pu.type==='life'){p.hp=(p.hp??10)+5;p.maxHp=Math.max(p.maxHp||10,p.hp);this.powerups=this.powerups.filter(u=>u!==pu);this.floaters.push(new Floater('+5 PV',p.x,p.y-45,'#75ffd8',13));this.sfx.powerup();return;}
+ if(pu.type==='life'){p.hp=(p.hp??15)+5;p.maxHp=Math.max(p.maxHp||15,p.hp);this.powerups=this.powerups.filter(u=>u!==pu);this.floaters.push(new Floater('+5 PV',p.x,p.y-45,'#75ffd8',13));this.sfx.powerup();return;}
  return deathmatchCollect.call(this,p,pu);
 };
 const deathmatchBrick=Game.prototype.destroyBrick;

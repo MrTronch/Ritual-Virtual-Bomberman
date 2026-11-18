@@ -24,7 +24,7 @@ const RevengeShips={
  moveSpeed:6.5,chargeSeconds:1.8,
  activeBombs(g,p){return g.bombs.filter(b=>b.revengeOwner===p&&!b.exploded).length;},
  colors:['#72df67','#b879ff','#ffc252','#5cdbff'],
- image:Object.assign(new Image(),{src:'assets/update-v22/cometa-travieso.webp'}),
+ image:Object.assign(new Image(),{src:'assets/naves/cometa-travieso.webp'}),
  rects:{up:[123,85,442,504],down:[706,77,441,513],left:[72,727,518,345],right:[681,727,515,345]},
  skins:new Map(),
  skin(facing,index){

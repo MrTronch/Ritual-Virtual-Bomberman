@@ -1,7 +1,7 @@
 // Atlas crops from the supplied art. No full-map image is used as a fake level.
 const ArenaArt={
- ritual:UpdateContent.loadImage('assets/update-v10/ritual-tileset.webp'),
- jurassic:UpdateContent.loadImage('assets/update-v10/jurassic-tileset.webp'),
+ ritual:UpdateContent.loadImage('assets/mapas/ritual/ritual-tileset.webp'),
+ jurassic:UpdateContent.loadImage('assets/mapas/jurasico/jurassic-tileset.webp'),
  ready(img){return img.complete&&img.naturalWidth>0;},
  patch(ctx,img,r,x,y,w=TILE,h=TILE){if(!this.ready(img))return false;ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(img,...r,x,y,w,h);ctx.restore();return true;},
  floor(ctx,g,x,y){

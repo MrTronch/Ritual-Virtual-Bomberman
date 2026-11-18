@@ -1,6 +1,6 @@
 // Shared expiry animation: render it after ships close at sudden death.
 const ShipExpiry={
- image:Object.assign(new Image(),{src:'assets/ships/expiry-explosion.webp'}),
+ image:Object.assign(new Image(),{src:'assets/naves/expiry-explosion.webp'}),
  rects:[[53, 118, 359, 239], [495, 91, 359, 280], [934, 118, 358, 239], [1352, 77, 379, 299], [47, 488, 364, 334], [495, 503, 340, 299], [964, 541, 273, 245], [1443, 588, 186, 171]],duration:.9,
  drawFrame(ctx,phase){const r=this.rects[Math.min(7,Math.max(0,Math.floor(phase)))];if(!this.image.complete||!this.image.naturalWidth)return false;const [x,y,w,h]=r,k=104/Math.max(this.rects[0][2],this.rects[0][3]);ctx.imageSmoothingEnabled=false;ctx.drawImage(this.image,x,y,w,h,-w*k/2,-h*k/2,w*k,h*k);return true;},
  draw(ctx,g){for(const f of g.shipBursts||[]){ctx.save();ctx.translate(f.x,f.y);ctx.rotate([-Math.PI/2,0,Math.PI/2,Math.PI][f.side]);this.drawFrame(ctx,Math.floor(f.age/this.duration*8));ctx.restore();}}

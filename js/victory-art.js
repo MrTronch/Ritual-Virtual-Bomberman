@@ -1,6 +1,6 @@
 // CSS sprite animation remains visible even while simulation is stopped.
 const VictoryArt={
- source:'celebraciones-corregidas.webp',
+ source:'assets/personajes/celebraciones/celebraciones-corregidas.webp',
  order:['psicogato','bunnylicious','perrotech','sazonix','sr-mr','michia'],
  show(ui,players){
   ui.overlay.querySelector('.victory-lineup')?.remove();document.body.classList.add('victory-screen');

@@ -30,3 +30,27 @@ Imágenes WebP sin pérdida: conservan dimensiones, transparencia y coordenadas 
 ## iPhone y iPad
 
 Abre la versión publicada por HTTPS en Safari. Gira el dispositivo a horizontal: no hace falta que Safari admita pantalla completa o bloqueo de orientación. Toca la pantalla para activar el sonido. La interfaz respeta las zonas del notch y del indicador de inicio. También se puede añadir a la pantalla de inicio; para usar mandos en iOS, se recomienda Safari, ya que los navegadores integrados pueden restringirlos.
+
+Batalla inicia por defecto con **1 humano y 3 CPU**, y modo extremo activado con 3 bombas simultáneas. Puedes ajustar la cantidad de CPU y tu elección se conserva.
+
+Batalla se organiza en dos pasos: configura las reglas y pulsa Continuar; después elige uno de los tres mapas y pulsa Jugar. En móvil, la palanca sigue el dedo y vuelve al centro al soltarla; bomba y guante son botones circulares.
+
+## Santuario del Inti y combate actualizado
+Cuarto mapa de Batalla y sexto mundo de campaña, con el tileset elegido, avisos de rayos cercanos y patín nivel 4. Deathmatch: cadencia 2,5 veces mayor (0,20 / 0,16 / 0,12 / 0,08 s), ítem trueno para cadencia, más equipo especial y pistola en el botón táctil. El guante permite lanzar bloques destructibles para infligir 3 PV. Los jefes de campaña disparan. Solo en campaña Deathmatch los enemigos se mueven un 18 % más rápido; la campaña normal conserva su velocidad anterior y comienza con patín nivel 3.
+## Música
+Se incluyen tus cinco MP3: inicio/selección, Ritual Virtual, Jurásico, Poder Máximo y Santuario del Inti. Se reproducen en bucle, sin superponer pistas. La música comienza tras la primera interacción; el botón Sonido la silencia junto con los efectos y el ajuste Música controla su volumen. La pausa reduce el volumen y salir de la pestaña detiene la reproducción hasta volver.
+
+El suelo del Inti usa losas de bajo contraste; todas las vasijas terracota son destructibles y los pilares grises son permanentes. El Inti descansa sobre un altar escalonado y el perímetro alterna frisos y relieves.
+
+
+## Organización de los archivos
+
+- `assets/mapas/`: Santuario del Inti, Uku Pacha, Ritual, Jurásico y efectos compartidos.
+- `assets/personajes/`: caminata, selección, celebraciones, derrotas, Deathmatch y guante.
+- `assets/objetos/`: ítems y cargas.
+- `assets/naves/`: naves y sus efectos.
+- `assets/interfaz/` y `assets/fonts/`: logo y tipografía.
+- `audio/`: música de menús y mapas.
+- `js/`, `css/` e `icons/`: código, estilos e iconos.
+
+Para publicar, sube todo el contenido de la carpeta `github` conservando estas rutas e incluyendo `.github` y `.nojekyll`.

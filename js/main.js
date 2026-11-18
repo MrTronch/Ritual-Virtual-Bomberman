@@ -49,7 +49,7 @@ class UI {
     this.overlay.querySelector('.character-preview')?.remove();
     this.overlay.querySelector('.victory-lineup')?.remove();
     this.overlayButtons.innerHTML = '';
-    this.overlayButtons.classList.remove('character-grid','battle-grid','battle-config','pause-actions','campaign-worlds','campaign-options');
+    this.overlayButtons.classList.remove('character-grid','battle-grid','battle-config','pause-actions','campaign-worlds','campaign-options','battle-rules','battle-maps');
     this.overlayButtons.classList.toggle('pause-actions',title==='PAUSA');
     document.getElementById('ritual-logo').hidden = title !== 'BOMBERMAN' && !title.startsWith('ELIGE');
     this.buttons = [];
@@ -217,23 +217,24 @@ class UI {
       const refs=this.playerRefs[i];if(!refs)return;
       this.hudPlayers.children[i]?.classList.toggle('eliminated', !p.alive && battle);
       this.hudPlayers.children[i]?.classList.toggle('in-revenge-ship', !!p.revengeShip && game.state==='playing');
-      this.set(refs.lives,p.revengeShip&&game.state==='playing'?'NAVE':Deathmatch.active(game)?'♥ '+(p.hp??10)+' PV'+(game.mode===1?' · '+p.lives+' VIDAS':''):(battle?'★ ':'♥ ')+(battle?p.wins:p.lives));
+      this.set(refs.lives,p.revengeShip&&game.state==='playing'?'NAVE':Deathmatch.active(game)?'♥ '+(p.hp??15)+' PV'+(game.mode===1?' · '+p.lives+' VIDAS':''):(battle?'★ ':'♥ ')+(battle?p.wins:p.lives));
       for(const key of ['range'])if(refs[key]?.parentElement)refs[key].parentElement.hidden=Deathmatch.active(game);
       if(refs.guardSlot)refs.guardSlot.hidden=Deathmatch.active(game);
       this.set(refs.score,String(p.score).padStart(6,'0'));
       if(refs.bombs?.parentElement){refs.bombs.parentElement.hidden=false;refs.bombs.parentElement.title=Deathmatch.active(game)?'Cadencia de disparo':'Bombas simultáneas';}
+      if(Deathmatch.active(game)){const c=refs.bombs.previousElementSibling;if(c?.tagName==='CANVAS'){c.getContext('2d').clearRect(0,0,24,24);Inca.bolt(c.getContext('2d'),0,0,24);}}
       this.set(refs.bombs,Deathmatch.active(game)?Deathmatch.fireInterval(p).toFixed(2)+'s':p.maxBombs);this.set(refs.range,p.range);this.set(refs.speed,p.speedLevel);
       for(const [flag,slot,key] of [[p.canKick,refs.kickSlot,'kick'],[p.wallPass,refs.wallSlot,'wallpass'],[p.heartGuard,refs.guardSlot,'guard']]){
         slot.classList.toggle('inactive',!flag);this.set(refs[key],flag?'✓':'-');
       }
-      this.set(refs.curse,[Deathmatch.active(game)?'LÁSER · '+(p.bombKind==='napalm'?'FUEGO 2':p.bombKind==='spike'?'PÚAS 4':p.bombKind==='tnt'?'TNT 3×3':'DAÑO 1'):'',p.curse?'CALAVERA '+Math.ceil(p.curse.timer/1000)+'s':'',p.snailTimer>0?'CARACOL '+Math.ceil(p.snailTimer/1000)+'s':'',p.bombKind&&p.bombKind!=='normal'?(p.bombKind==='spike'?'PÚAS':p.bombKind.toUpperCase()):'',p.canPunch?(p.held?'EN MANO':'GUANTE N'):''].filter(Boolean).join(' · '));
+      this.set(refs.curse,[Deathmatch.active(game)?'DISPARO · '+(p.bombKind==='napalm'?'FUEGO 2':p.bombKind==='spike'?'PÚAS 4':p.bombKind==='tnt'?'TNT 3×3':'DAÑO 1'):'',p.curse?'CALAVERA '+Math.ceil(p.curse.timer/1000)+'s':'',p.snailTimer>0?'CARACOL '+Math.ceil(p.snailTimer/1000)+'s':'',p.bombKind&&p.bombKind!=='normal'?(p.bombKind==='spike'?'PÚAS':p.bombKind.toUpperCase()):'',p.canPunch?(p.held?'EN MANO':'GUANTE N'):''].filter(Boolean).join(' · '));
     });
     for(const ref of this.cpuRefs||[])this.set(ref.el,ref.p.name+' ★'+ref.p.wins);
     if(battle)this.set(this.level,game.level);else{const s=game.campaignStage();this.set(this.level,`${s.world+1}-${s.stage+1}`);}
     const seconds=Math.max(0,Math.ceil(game.timeLeft));
     this.set(this.time,battle?Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0'):seconds);
     this.timerStat.classList.toggle('warning',game.state==='playing'&&((game.mode===1&&game.timeLeft<30)||game.suddenDeath));
-    const fireButton=document.querySelector('.tbtn.bomb');if(fireButton){fireButton.textContent=Deathmatch.active(game)?'LÁSER':'💣';fireButton.setAttribute('aria-label',Deathmatch.active(game)?'Disparar láser':'Bomba');}
+    const fireButton=document.querySelector('.tbtn.bomb');if(fireButton){const mode=Deathmatch.active(game)?'gun':'bomb';if(fireButton.dataset.art!==mode){fireButton.dataset.art=mode;fireButton.textContent='';if(mode==='gun'){const icon=document.createElement('canvas');icon.width=icon.height=48;icon.className='touch-gun-icon';Inca.gun(icon.getContext('2d'),0,0,48);fireButton.append(icon);}else fireButton.textContent='💣';}fireButton.setAttribute('aria-label',Deathmatch.active(game)?'Disparar láser':'Bomba');}
     this.touchDetonate.classList.add('hidden');
     document.body.classList.toggle('controller-only',game.requiresControllers());
     const glove=document.getElementById('touch-glove');if(glove)glove.hidden=!game.players.some(p=>!p.isBot&&p.canPunch&&p.alive);
@@ -304,7 +305,7 @@ class UI {
   pads.onJoin=(slot,pad)=>{const accepted=game.joinController(slot);if(accepted)game.floaters.push(new Floater('MANDO J'+(slot+1)+' LISTO',CANVAS_W/2,CANVAS_H-40,'#c3ff85',16,2000));return accepted;};
   window.gamepads=pads;
   pads.controllerOnly=()=>game.requiresControllers();
-  pads.onAssignmentsChanged=()=>{if(game.state==='setup'&&['BATALLA','BATTLE'].includes(ui.overlayTitle.textContent))game.showBattleSetup();};
+  pads.onAssignmentsChanged=()=>{if(game.state==='setup'){if(ui.overlayTitle.textContent==='MAPAS DE BATALLA')game.showBattleMaps();else if(['BATALLA','BATTLE'].includes(ui.overlayTitle.textContent))game.showBattleSetup();}};
   pads.onConnect = (pad) => {
     game.floaters.push(new Floater('MANDO CONECTADO · PULSA START', CANVAS_W / 2, CANVAS_H - 40, '#aed581', 16, 2000));
   };

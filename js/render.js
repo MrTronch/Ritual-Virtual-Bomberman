@@ -292,6 +292,7 @@ const Renderer = (() => {
       }
     }
 
+    ArenaArt.currents?.(ctx,game);
     ArenaArt.portalBack(ctx,game);
     if (game.suddenDeath) drawSpiralWarning(ctx, game);
     if (game.exit && game.exit.revealed) drawExit(ctx, game.exit, game.enemiesRemaining() === 0, game.elapsed);
