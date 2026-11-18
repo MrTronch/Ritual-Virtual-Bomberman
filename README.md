@@ -25,7 +25,7 @@ Pulsa Abrir en horizontal para solicitar pantalla completa y orientación horizo
 
 ## Optimización
 
-Imágenes WebP sin pérdida: conservan dimensiones, transparencia y coordenadas de los sprites. Solo se incluyen recursos referenciados. Caché para uso sin conexión después de la primera carga.
+Imágenes WebP optimizadas de alta calidad: conservan dimensiones, transparencia y coordenadas de los sprites. Solo se incluyen recursos referenciados. Caché para uso sin conexión después de la primera carga.
 
 ## iPhone y iPad
 
