@@ -983,3 +983,21 @@ body.touch-ui #dpad{width:min(35vh,145px,calc(var(--control-rail,150px) - 4px))!
 #overlay-buttons.battle-maps>.map-card canvas{max-height:20cqh;width:100%;}
 #overlay-buttons.battle-maps>.battle-play,#overlay-buttons.battle-maps>.battle-back{grid-column:auto;}
 @media(orientation:landscape) and (max-height:600px){#overlay-buttons.battle-maps{gap:6px;}#overlay-buttons.battle-maps>.map-card canvas{max-height:18cqh;}#overlay-buttons.battle-maps>.map-card{font-size:9px;padding:5px;}#overlay-buttons.battle-maps>.battle-play,#overlay-buttons.battle-maps>.battle-back{min-height:30px;}}
+
+/* One mobile HUD row leaves more height for the board. */
+@media (orientation:landscape){
+ body.touch-ui #hud{flex-direction:row;align-items:center;gap:7px;padding:3px 6px;min-height:0;}
+ body.touch-ui #hud-center{flex:0 0 auto;gap:6px;min-height:30px;white-space:nowrap;font-size:8px;}
+ body.touch-ui #hud-center button{font-size:7px;padding:5px 6px;min-height:28px;}
+ body.touch-ui #hud-players{flex:1;min-width:0;gap:4px;}
+ body.touch-ui #hud .player-panel{grid-template-columns:24px minmax(0,1fr);padding:2px 4px;gap:3px;min-height:32px;border-radius:8px;}
+ body.touch-ui #hud .hud-portrait{width:24px;height:24px;}
+ body.touch-ui #hud .player-heading{font-size:7px;gap:1px;}
+ body.touch-ui #hud .player-content{gap:1px;}
+ body.touch-ui #hud .player-score b{font-size:8px;}
+ body.touch-ui #hud .player-score span{display:none;}
+ body.touch-ui #hud .player-items{gap:2px;}
+ body.touch-ui #hud .hud-item{font-size:6px;}
+ body.touch-ui #hud .hud-item canvas{width:11px;height:11px;}
+}
+#touch-glove-icon{object-fit:contain;pointer-events:none;max-width:100%;max-height:100%;}

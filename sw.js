@@ -1,5 +1,6 @@
-const CACHE = 'ritual-bomberman-v62-public';
+const CACHE = 'ritual-bomberman-v63-public';
 const ASSETS = [
+  "./assets/interfaz/guante.webp",
   "./assets/mapas/uku-pacha/uku-pacha-sello-central.webp",
   "./assets/mapas/compartidos/templo-fuegos-lamparas.webp",
   "./assets/mapas/uku-pacha/uku-pacha-atlas.webp",
