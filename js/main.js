@@ -42,7 +42,7 @@ class UI {
   showOverlay({ title, text, buttons, help, focus }) {
     document.body.classList.toggle('character-select', title.startsWith('ELIGE'));
     document.body.classList.toggle('title-screen', title === 'BOMBERMAN');
-    document.body.classList.remove('victory-screen','campaign-select','round-results','campaign-results');
+    document.body.classList.remove('victory-screen','campaign-select','round-results','campaign-results','cup-victory');
     this.set(this.overlayTitle, title);
     this.set(this.overlayText, text || '');
     this.set(this.overlayHelp, help || '');
@@ -97,7 +97,7 @@ class UI {
   }
 
   hideOverlay() {
-    document.body.classList.remove('character-select', 'title-screen', 'victory-screen', 'campaign-select', 'round-results', 'campaign-results');
+    document.body.classList.remove('character-select', 'title-screen', 'victory-screen', 'campaign-select', 'round-results', 'campaign-results', 'cup-victory');
     this.overlay.classList.remove('visible');
     this.buttons = [];
   }
@@ -121,6 +121,15 @@ class UI {
   focusMove(delta) {
     if (!this.buttons.length) return;
     for(let step=1;step<=this.buttons.length;step++){const index=(this.focusIndex+delta*step+this.buttons.length*step)%this.buttons.length;if(!this.buttons[index].disabled&&!this.buttons[index].el?.disabled){this.focusButton(index);break;}}
+  }
+
+  focusDirection(direction) {
+    const current=this.buttons[this.focusIndex]?.el;if(!current)return;
+    const r=current.getBoundingClientRect(),x=(r.left+r.right)/2,y=(r.top+r.bottom)/2;
+    const horizontal=direction==='left'||direction==='right',sign=direction==='left'||direction==='up'?-1:1;
+    const choices=this.buttons.map((b,i)=>{const a=b.el.getBoundingClientRect(),dx=(a.left+a.right)/2-x,dy=(a.top+a.bottom)/2-y,along=(horizontal?dx:dy)*sign,cross=Math.abs(horizontal?dy:dx);return {b,i,along,score:along+cross*4};}).filter(c=>c.i!==this.focusIndex&&!c.b.disabled&&!c.b.el.disabled&&c.along>3).sort((a,b)=>a.score-b.score);
+    if(choices.length)this.focusButton(choices[0].i);
+    else if(!horizontal)this.focusMove(sign);
   }
 
   activateButton(i) {
@@ -299,8 +308,14 @@ class UI {
   const pads = new GamepadInput(input, () => game.isMenu() || game.state === 'intro');
   pads.lobbyInput=(slot,code)=>game.lobby&&game.state==='setup'?game.lobbyInput(slot,code):false;
   pads.inLobby=()=>!!game.lobby&&game.state==='setup';
-  pads.menuOwner=()=>ui.overlayTitle.textContent.endsWith('J2')?1:0;
-  pads.onJoin=(slot,pad)=>{const accepted=game.joinController(slot);if(accepted)game.floaters.push(new Floater('MANDO J'+(slot+1)+' LISTO',CANVAS_W/2,CANVAS_H-40,'#c3ff85',16,2000));return accepted;};
+  pads.menuOwner=()=>ui.overlayTitle.textContent==='MAPAS DE BATALLA'?0:ui.overlayTitle.textContent.endsWith('J2')?1:0;
+  pads.autoClaimPrimary=()=>ui.overlayTitle.textContent==='MAPAS DE BATALLA';
+  pads.onJoin=(slot,pad)=>{
+    if(pad.mapping!=='standard'&&!pads.profiles[pad.id]){
+      const lobby=game.lobby,title=ui.overlayTitle.textContent;
+      game.showControllerSetup(pad,()=>{if(pads.profiles[pad.id]){pads.joined[slot]=pad.index;game.joinController(slot);}if(lobby)game.showCharacterSelect(lobby.next,lobby.battle,slot);else if(['BATALLA','BATTLE'].includes(title))game.showBattleSetup();else if(title==='MAPAS DE BATALLA')game.showBattleMaps();else game.showTitle();});return false;
+    }
+    const accepted=game.joinController(slot);if(accepted)game.floaters.push(new Floater('MANDO J'+(slot+1)+' LISTO',CANVAS_W/2,CANVAS_H-40,'#c3ff85',16,2000));return accepted;};
   window.gamepads=pads;
   pads.controllerOnly=()=>game.requiresControllers();
   pads.onAssignmentsChanged=()=>{if(game.state==='setup'){if(ui.overlayTitle.textContent==='MAPAS DE BATALLA')game.showBattleMaps();else if(['BATALLA','BATTLE'].includes(ui.overlayTitle.textContent))game.showBattleSetup();}};

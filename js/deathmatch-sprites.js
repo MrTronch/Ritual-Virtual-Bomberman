@@ -20,7 +20,7 @@ const DeathmatchSprites={
   const l=this.layout(p);if(!l)return false;const {f,w,h,k}=l,[sx,sy]=f.rect;
   ctx.save();ctx.translate(Math.round(p.x),Math.round(p.y));ctx.imageSmoothingEnabled=false;
   if(p.portalTransit){const t=p.portalTransit,scale=Math.max(.08,Math.abs(t.age/t.duration*2-1));ctx.scale(scale,.85+.15*scale);}
-  if(p.wallPass&&g.grid?.[p.ty]?.[p.tx]===TILE_BRICK)ctx.globalAlpha=.72;
+  if(p.wallPass&&g.grid?.[p.ty]?.[p.tx]===TILE_BRICK)ctx.globalAlpha=1;
   if(p.shield>0&&Math.floor(p.shield/110)%2===0)ctx.globalAlpha*=.55;
   ctx.drawImage(f.source,sx,sy,w,h,-w*k/2,l.y,w*k,h*k);ctx.restore();return true;
  }

@@ -118,40 +118,50 @@ class Game {
     this.state='setup';
     if(!this.lobby||this.lobby.next!==next){
       if(battle){const joined=window.gamepads?.joined||[];this.settings.battle.humans=Math.max(this.settings.battle.humans,...joined.map((p,i)=>p==null?1:i+1));}
-      this.lobby={next,battle,active:slot,ready:Array(4).fill(false)};
+      this.lobby={next,battle,active:slot,ready:Array(4).fill(false),footer:Array(4).fill(false)};
     }
     const lobby=this.lobby,humans=battle?this.settings.battle.humans:1;
     const selected=new Set();for(let i=0;i<humans;i++){const key='p'+(i+1);if(!CHARACTERS.some(c=>c.id===this.settings.characters[key])||selected.has(this.settings.characters[key]))this.settings.characters[key]=CHARACTERS.find(c=>!selected.has(c.id)).id;selected.add(this.settings.characters[key]);}
-    this.ui.showOverlay({title:'ELIGE TU PERSONAJE',text:battle?'2 JUGADORES: J1 MANDO · J2 TECLADO O MANDO · 3–4: TODOS CON MANDO':'',buttons:[
-      ...CHARACTERS.map(c=>({label:c.name,character:c,action:()=>this.chooseLobbyCharacter(lobby.active,c.id)})),
-      {label:'CONTINUAR',action:()=>{this.lobby=null;this.saveSettings();next();}},
+    this.ui.showOverlay({title:'ELIGE TU PERSONAJE',text:(battle?'2 JUGADORES: J1 MANDO · J2 TECLADO O MANDO · 3–4: TODOS CON MANDO\n':'')+'X / CÍRCULO: LISTO · CUADRADO: CANCELAR · TODOS LISTOS → J1 ABAJO Y CONFIRMAR',buttons:[
+      ...CHARACTERS.map(c=>({label:c.name,character:c,action:()=>this.chooseLobbyCharacter(lobby.active,c.id,true)})),
+      {label:'CONTINUAR',disabled:!lobby.ready.slice(0,humans).every(Boolean),action:()=>{if(!lobby.ready.slice(0,humans).every(Boolean))return;this.lobby=null;this.saveSettings();next();}},
       {label:'VOLVER',back:true,action:()=>{this.lobby=null;this.showTitle();}}
-    ],help:'J2 con teclado: flechas/WASD · M bomba · N guante · cada mando se une con Start',focus:7});
+    ],help:'X / círculo: confirmar personaje · Cuadrado: cancelar / volver · J1: abajo para CONTINUAR · J2 teclado: Enter o M',focus:lobby.footer[0]&&lobby.ready.slice(0,humans).every(Boolean)?7:CHARACTERS.findIndex(c=>c.id===this.settings.characters['p'+(lobby.active+1)])});
     this.ui.overlayButtons.classList.add('character-grid');
     document.body.classList.toggle('campaign-select', !battle);
     const slots=document.createElement('div');slots.className='lobby-slots';
     for(let i=0;i<(battle?4:1);i++){
       const human=i<humans,c=human?CHARACTERS.find(c=>c.id===this.settings.characters['p'+(i+1)]):null;
       const panel=document.createElement('button');panel.className='lobby-slot '+(human?'human':'cpu');panel.style.setProperty('--slot-color',['#39df52','#cb45e5','#e7bd39','#04c9ee'][i]);
-      panel.type='button';panel.innerHTML='<strong>'+ (human?'PLAYER '+(i+1):'CPU · UNIR J'+(i+1))+'</strong>';
+      panel.type='button';panel.innerHTML='<strong>'+ (human?'J'+(i+1)+(lobby.ready[i]?' · LISTO':' · ELIGIENDO'):'CPU · UNIR J'+(i+1))+'</strong>';
       if(c){const canvas=document.createElement('canvas');canvas.width=320;canvas.height=360;canvas.className='lobby-full-body';const paint=()=>SelectionArt.preview(canvas.getContext('2d'),c.id,320,360);if(!paint())RitualSprites.walkSheets[c.id].addEventListener('load',paint,{once:true});if(!RitualSprites.detailSheet.complete)RitualSprites.detailSheet.addEventListener('load',paint,{once:true});SelectionArt.ready.then(paint);panel.append(canvas);}
       else{const mark=document.createElement('span');mark.className='random-character';mark.textContent='?';panel.append(mark);}
       const name=document.createElement('span');name.className='selected-character-name';name.textContent=c?c.name:'';panel.append(name);if(c){const phrase=document.createElement('span');phrase.className='character-tagline';phrase.textContent=CHARACTER_TAGLINES[c.id];panel.append(phrase);}
-      panel.classList.toggle('active',human&&i===lobby.active);panel.onclick=()=>{if(!human&&battle){this.settings.battle.humans=i+1;this.settings.battle.bots=Math.min(this.settings.battle.bots,3-i);}lobby.active=i;this.showCharacterSelect(next,battle,i);};slots.append(panel);
+      panel.classList.toggle('active',human&&i===lobby.active);panel.classList.toggle('ready',human&&lobby.ready[i]);panel.onclick=()=>{if(!human&&battle){this.settings.battle.humans=i+1;this.settings.battle.bots=Math.min(this.settings.battle.bots,3-i);}lobby.active=i;this.showCharacterSelect(next,battle,i);};slots.append(panel);
     }
     this.ui.overlayButtons.prepend(slots);
-    CHARACTERS.forEach((c,i)=>{const owners=[0,1,2,3].filter(n=>n<humans&&this.settings.characters['p'+(n+1)]===c.id);const el=this.ui.buttons[i].el;el.dataset.players=owners.map(n=>'J'+(n+1)).join(' · ');el.classList.toggle('claimed',owners.length>0);});
+    CHARACTERS.forEach((c,i)=>{const owners=[0,1,2,3].filter(n=>n<humans&&this.settings.characters['p'+(n+1)]===c.id);const el=this.ui.buttons[i].el;if(owners.length)el.style.setProperty('--selector-color',['#39df52','#cb45e5','#e7bd39','#04c9ee'][owners[0]]);el.dataset.players=owners.map(n=>'J'+(n+1)).join(' · ');el.classList.toggle('claimed',owners.length>0);});
   }
-  chooseLobbyCharacter(slot,id){
+  chooseLobbyCharacter(slot,id,confirm=false){
     const l=this.lobby;if(!l||slot>=(l.battle?this.settings.battle.humans:1))return;
     const key='p'+(slot+1);
     if(l.battle&&Array.from({length:this.settings.battle.humans},(_,i)=>i).some(i=>i!==slot&&this.settings.characters['p'+(i+1)]===id))return;
-    this.settings.characters[key]=id;l.active=slot;this.saveSettings();this.showCharacterSelect(l.next,l.battle,slot);
+    this.settings.characters[key]=id;l.active=slot;l.ready[slot]=confirm;l.footer[slot]=false;this.saveSettings();this.showCharacterSelect(l.next,l.battle,slot);
   }
   lobbyInput(slot,code){
     const l=this.lobby;if(!l)return false;
-    if(code==='Backspace'){this.lobby=null;this.showTitle();return true;}
-    if(code==='Enter'){if(slot===0)this.ui.activateButton(7);return true;}
+    const humans=l.battle?this.settings.battle.humans:1;
+    if(slot<0||slot>=humans)return false;
+    if(code==='Backspace'){
+      if(l.ready[slot]||l.footer[slot]){l.ready[slot]=false;l.footer[slot]=false;this.showCharacterSelect(l.next,l.battle,slot);}
+      else if(slot===0){this.lobby=null;this.showTitle();}return true;
+    }
+    if(code==='Enter'){
+      if(l.footer[slot]&&slot===0){this.ui.activateButton(7);return true;}
+      l.ready[slot]=true;this.showCharacterSelect(l.next,l.battle,slot);return true;
+    }
+    if(slot===0&&code==='ArrowDown'&&l.ready.slice(0,humans).every(Boolean)){l.footer[0]=true;this.ui.focusButton(7);return true;}
+    l.footer[slot]=false;
     const step = !this.ui.isTouch() && window.innerWidth > 600 ? 1 : 3;
     const delta={ArrowLeft:-1,ArrowRight:1,ArrowUp:-step,ArrowDown:step}[code];
     if(delta){const current=CHARACTERS.findIndex(c=>c.id===this.settings.characters['p'+(slot+1)]);for(let n=1;n<=7;n++){const c=CHARACTERS[(current+delta*n+70)%7];if(l.battle&&Array.from({length:this.settings.battle.humans},(_,i)=>i).some(i=>i!==slot&&this.settings.characters['p'+(i+1)]===c.id))continue;this.chooseLobbyCharacter(slot,c.id);break;}}
@@ -302,6 +312,14 @@ class Game {
     });
   }
 
+  showControllerSetup(pad,done){
+    const pads=window.gamepads;if(!pads)return;
+    const steps=[['bomb','X / A: bomba y confirmar'],['confirm','CÍRCULO / B: bomba y confirmar'],['glove','CUADRADO / X: guante y volver'],['start','START / OPTIONS: unirse y pausa']];
+    const finish=()=>{pads.calibration=null;this.input.down.clear();this.input.pressed.clear();done();};
+    const paint=()=>{const c=pads.calibration;this.ui.showOverlay({title:'CONFIGURAR MANDO',text:(c.pad?c.pad.id+'\n':'Pulsa un botón en el mando que quieres configurar.\n')+(c.pad?'Pulsa '+steps[c.step][1]:''),buttons:[{label:'CANCELAR',back:true,action:finish}],help:'Se guarda por modelo en este navegador. Suelta cada botón antes del siguiente.'});};
+    pads.beginCalibration(pad,steps,paint,finish);paint();
+  }
+
   showOptions(returnTo = 'title') {
     // Reachable from the title and from the pause menu; state stays a menu
     // state either way so the game underneath does not advance.
@@ -363,6 +381,7 @@ class Game {
           },
         },
         { label: 'CONTROLS', action: () => this.showControls(returnTo) },
+        { label: 'CONFIGURAR MANDO', action: () => this.showControllerSetup(null,()=>this.showOptions(returnTo)) },
         {
           label: this.resetArmed ? 'CONFIRM RESET?' : 'RESET PROGRESS',
           action: () => {
@@ -391,7 +410,7 @@ class Game {
       text:
         'Player 1:  W A S D or arrow keys move  ·  M coloca bomba · N recoge/lanza con guante · Espacio pausa\n' +
         'Player 2:  I J K L move  ·  Enter coloca bomba · O recoge/lanza con guante\n' +
-        'Mandos: Start une J1 / J2 · Cruceta o stick mueve · X pone bomba · B usa guante · Start pausa\n\n' +
+        'Mandos: Start une J1 / J2 · Cruceta o stick mueve · X / círculo: bomba · cuadrado: guante · Start pausa\n\n' +
         'Espacio, P o Esc pausa  ·  V silencia los efectos  ·  R returns to the menu\n' +
         'Menus: number keys pick a button, arrows move, Enter confirms, Esc goes back\n' +
         (this.ui.isTouch() ? '\nTouch: D-pad moves, the big button drops a bomb, los botones pequeños pausan y usan el guante.' : ''),
@@ -411,7 +430,7 @@ class Game {
         '' +
         '👻 walk through bricks   ❤ protección de un golpe   💀 random curse'
       : 'Move with W A S D or the arrow keys, coloca bombas con M; Espacio pausa.\n' +
-        '2 jugadores: J1 mando, J2 teclado o mando. Con 3–4: todos con mando. X: bomba/disparo; cuadrado: guante.\n' +
+        '2 jugadores: J1 mando, J2 teclado o mando. Con 3–4: todos con mando. X / círculo: bomba/disparo; cuadrado: guante.\n' +
         'Bombs explode in a cross and destroy bricks, enemies and players.\n' +
         'Campaign: defeat every enemy, then find the exit hidden under a brick.\n' +
         'Every fifth stage is a boss: hit it with flames until its health bar is empty.\n' +
@@ -1193,7 +1212,18 @@ class Game {
 
   handleGlobalKeys() {
     const inp = this.input;
-    if(this.lobby&&this.state==='setup'){for(let slot=0;slot<(this.lobby.battle?this.settings.battle.humans:1);slot++){if(this.lobby.battle&&this.settings.battle.humans===2&&slot===0)continue;const keys=this.lobby.battle&&this.settings.battle.humans===2?PLAYER_CONFIGS[0].keys:PLAYER_CONFIGS[slot].keys;for(const dir of ['left','right','up','down'])if(inp.wasPressed(keys[dir]))this.lobbyInput(slot,'Arrow'+dir[0].toUpperCase()+dir.slice(1));}if(inp.wasPressed(['Enter','Space']))this.lobbyInput(0,'Enter');if(inp.wasPressed(['Escape','Backspace']))this.lobbyInput(0,'Backspace');return true;}
+    if(window.gamepads?.calibration)return true;
+    if(this.lobby&&this.state==='setup'){
+      const humans=this.lobby.battle?this.settings.battle.humans:1;
+      for(let slot=0;slot<humans;slot++){
+        if(this.lobby.battle&&humans===2&&slot===0)continue;
+        const keys=this.lobby.battle&&humans===2?PLAYER_CONFIGS[0].keys:PLAYER_CONFIGS[slot].keys;
+        for(const dir of ['left','right','up','down'])if(inp.wasPressed(keys[dir]))this.lobbyInput(slot,'Arrow'+dir[0].toUpperCase()+dir.slice(1));
+      }
+      const keyboardSlot=this.lobby.battle&&humans===2?1:0;
+      if(inp.wasPressed(['Enter','Space','KeyM']))this.lobbyInput(keyboardSlot,'Enter');
+      if(inp.wasPressed(['Escape','Backspace']))this.lobbyInput(keyboardSlot,'Backspace');return true;
+    }
     if(this.isSpectating()&&inp.wasPressed(['KeyF','KeyM','Enter'])){this.toggleSpectatorSpeed();return true;}
     if (inp.wasPressed('KeyV')) this.toggleMute();
 
@@ -1223,10 +1253,10 @@ class Game {
         if (confirm) return this.ui.activateFocused();
         if (inp.wasPressed(['Escape', 'Backspace'])) return this.ui.backAction();
         const vertical = inp.wasPressed(['ArrowUp', 'KeyW', 'ArrowDown', 'KeyS']);
-        if (inp.wasPressed(['ArrowUp', 'KeyW'])) this.ui.focusMove(-1);
-        if (inp.wasPressed(['ArrowDown', 'KeyS'])) this.ui.focusMove(1);
-        if(!vertical&&inp.wasPressed(['ArrowLeft','KeyA']))return this.ui.activateFocused(true,-1);
-        if(!vertical&&inp.wasPressed(['ArrowRight','KeyD']))return this.ui.activateFocused(true,1);
+        if (inp.wasPressed(['ArrowUp', 'KeyW'])) this.ui.focusDirection('up');
+        if (inp.wasPressed(['ArrowDown', 'KeyS'])) this.ui.focusDirection('down');
+        if(!vertical&&inp.wasPressed(['ArrowLeft','KeyA']))return this.ui.focusDirection('left');
+        if(!vertical&&inp.wasPressed(['ArrowRight','KeyD']))return this.ui.focusDirection('right');
         if (this.state !== 'title' && this.state !== 'setup' && inp.wasPressed('KeyR')) {
           this.showTitle();
           return true;
@@ -1264,8 +1294,8 @@ class Game {
         const d = pressedDigit();
         if (d >= 0) return this.ui.activateButton(d);
         if (inp.wasPressed(['Enter', 'NumpadEnter', 'Space'])) return this.ui.activateFocused();
-        if (inp.wasPressed(['ArrowUp', 'KeyW'])) this.ui.focusMove(-1);
-        if (inp.wasPressed(['ArrowDown', 'KeyS'])) this.ui.focusMove(1);
+        if (inp.wasPressed(['ArrowUp', 'KeyW'])) this.ui.focusDirection('up');
+        if (inp.wasPressed(['ArrowDown', 'KeyS'])) this.ui.focusDirection('down');
         if (inp.wasPressed('KeyR')) {
           this.showTitle();
           return true;

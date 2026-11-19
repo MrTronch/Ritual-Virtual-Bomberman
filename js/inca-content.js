@@ -299,7 +299,7 @@ Inca.purpleBlock=function(ctx,x,y){if(!purpleBlockCache){purpleBlockCache=docume
 
 // Paint the compact shrine in the terrain pass: no player, bomb or pickup is hidden by it.
 const compactShrineTerrain=ArenaArt.currents;
-ArenaArt.currents=function(ctx,g){compactShrineTerrain.call(this,ctx,g);if(g.inti){const v=g.inti,size=TILE*2.5,x=centerOf(v.x),y=centerOf(v.y)-25,charge=Math.max(0,Math.min(1,(2.2-v.until)/2.2));Inca.sun(ctx,x,y,size,charge);Inca.altarFront(ctx,x,y,size);}};
+ArenaArt.currents=function(ctx,g){compactShrineTerrain.call(this,ctx,g);if(g.inti){const v=g.inti,size=TILE*2.5,x=centerOf(v.x),y=centerOf(v.y)-25,charge=Math.max(0,Math.min(1,(2.2-v.until)/2.2));Inca.altarFront(ctx,x,y,size);}};
 // Hold the glove action while carrying, then release to throw up to eight tiles.
 const chargeGloveUse=Game.prototype.useGlove;
 Game.prototype.useGlove=function(p){if(p.held&&!p.isBot&&!p.releaseGlove){p.gloveCharging=true;p.gloveCharge=0;return true;}return chargeGloveUse.call(this,p);};
@@ -318,3 +318,6 @@ const gloveArc=ArenaArt.flightPoint;
 ArenaArt.flightPoint=function(f){if(!f.path)return gloveArc.call(this,f);const t=Math.min(1,f.age/f.duration),v=t*(f.path.length-1),i=Math.min(f.path.length-2,Math.floor(v)),q=v-i,a=f.path[i],b=f.path[i+1];return {x:a.x+(b.x-a.x)*q,y:a.y+(b.y-a.y)*q-Math.abs(Math.sin(v*Math.PI))*18-Math.sin(t*Math.PI)*32};};
 const gloveChargePaint=ArenaArt.airObjects;
 ArenaArt.airObjects=function(ctx,g){gloveChargePaint.call(this,ctx,g);for(const p of g.players)if(p.alive&&p.held&&p.gloveCharging){const q=Math.min(1,(p.gloveCharge||0)/1.4);ctx.fillStyle='#1c2034';ctx.fillRect(p.x-20,p.y-108,40,6);ctx.fillStyle=q>=1?'#fff4a0':'#5be8ef';ctx.fillRect(p.x-19,p.y-107,38*q,4);}};
+
+// The sun sits above scene actors; only airborne bombs are repainted over it.
+ArenaArt.intiForeground=function(ctx,g){if(!g.inti)return;const v=g.inti,size=TILE*2.5,x=centerOf(v.x),y=centerOf(v.y)-25,charge=Math.max(0,Math.min(1,(2.2-v.until)/2.2));ctx.save();ctx.beginPath();ctx.rect(x-size*.6,y-size, size*1.2,size*1.19);ctx.clip();Inca.sun(ctx,x,y,size,charge);ctx.restore();for(const b of g.bombs)if(b.flight&&!b.exploded){const a=this.flightPoint(b.flight);PixelFX.bomb(ctx,{...b,x:a.x,y:a.y});}};

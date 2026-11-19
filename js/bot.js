@@ -103,6 +103,7 @@ function botDangerMap(game, cfg, extraBomb, self = null) {
     t: Number.isFinite(b.timer) ? b.timer : b.owner === self ? 4000 : 1500,
   }));
   if (extraBomb) bombs.push({ tx: extraBomb.tx, ty: extraBomb.ty, range: extraBomb.range, kind:extraBomb.kind||self?.bombKind||'normal', t: extraBomb.timer });
+  if(game.paracas)for(const b of bombs)if(game.paracas.trapKeys.has(tileKey(b.tx,b.ty))){const t=Paracas.phase(game);b.t=Math.min(b.t,t>=Paracas.halfCycle?0:(Paracas.halfCycle-t)*1000);}
   const cells = bombs.map((b) => botBlastCells(game, b.tx, b.ty, b.range,b.kind));
 
   if (cfg.predictChains) {
@@ -320,7 +321,7 @@ class Bot {
         const passable = relaxed
           ? enter < e.hitAt || enter > e.clearAt + 40
           : t + tileTime + margin < e.hitAt || enter > e.clearAt + 60;
-        if (!passable) continue;
+        if (!passable || game.paracasSafeAt&&!game.paracasSafeAt(x,y,enter,t+tileTime+margin)) continue;
         seen.add(k);
         queue.push({ x, y, t, dist: n.dist + 1, prev: n });
       }

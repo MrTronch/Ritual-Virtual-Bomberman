@@ -157,7 +157,7 @@ const Renderer = (() => {
     ctx.restore();
   }
 
-  function drawFallingBlock(ctx, fb) {
+  function drawFallingBlock(ctx, fb, game) {
     const t = 1 - fb.timer / FALLING_BLOCK_DURATION;
     const px = fb.tx * TILE;
     const py = fb.ty * TILE;
@@ -167,7 +167,9 @@ const Renderer = (() => {
     ctx.fillStyle = '#000';
     ctx.fillRect(px + 4, py + 4, TILE - 8, TILE - 8);
     ctx.globalAlpha = 1;
-    ctx.drawImage(tiles.wall, px, py - drop, TILE, TILE);
+    ctx.save();ctx.translate(0,-drop);
+    if(!ArenaArt.solid(ctx,game,fb.tx,fb.ty,TILE_WALL))drawTile(ctx,'wall',px,py);
+    ctx.restore();
     ctx.restore();
   }
 
@@ -280,39 +282,53 @@ const Renderer = (() => {
       ctx.translate((Math.random() - 0.5) * 2 * game.shake.mag, (Math.random() - 0.5) * 2 * game.shake.mag);
     }
 
+    ArenaArt.background?.(ctx,game);
     const fallingKeys = new Set(game.falling.map((fb) => fb.ty * COLS + fb.tx));
     for (let y = 0; y < ROWS; y++) {
       for (let x = 0; x < COLS; x++) {
         const px = x * TILE;
         const py = y * TILE;
         if(!ArenaArt.floor(ctx,game,x,y))drawTile(ctx, (x + y) % 2 ? 'floor1' : 'floor0', px, py);
-        const t = grid[y][x];
-        if (t === TILE_WALL && !fallingKeys.has(y * COLS + x)){if(!ArenaArt.solid(ctx,game,x,y,t))drawTile(ctx,'wall',px,py);}
-        else if(t===TILE_BRICK){if(!ArenaArt.solid(ctx,game,x,y,t))drawTile(ctx,'brick',px,py);}
+
       }
     }
 
+    // Boundary architecture is a terrain layer; never cover the first walkable row.
+    for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if((x===0||y===0||x===COLS-1||y===ROWS-1)&&grid[y][x]===TILE_WALL&&!fallingKeys.has(y*COLS+x)){
+      if(!ArenaArt.solid(ctx,game,x,y,TILE_WALL))drawTile(ctx,'wall',x*TILE,y*TILE);
+    }
     ArenaArt.currents?.(ctx,game);
+    // Decorative perimeter belongs to terrain, below bombs and all actors.
+    RevengeShips.rail(ctx,game);
     ArenaArt.portalBack(ctx,game);
     if (game.suddenDeath) drawSpiralWarning(ctx, game);
     if (game.exit && game.exit.revealed) drawExit(ctx, game.exit, game.enemiesRemaining() === 0, game.elapsed);
 
-    for (const pu of game.powerups) drawPowerUp(ctx, pu);
-    for (const b of game.bombs) if(!b.inHand&&!b.flight)drawBomb(ctx, b);
-    for (const br of game.breaking) drawBreakingBrick(ctx, br);
-    for (const fb of game.falling) drawFallingBlock(ctx, fb);
-    for (const ex of game.explosions) drawExplosion(ctx, ex);
-    // The map is painted once. Tall actors go above terrain, never under a
-    // second wall pass. Sort their ground positions for consistent overlap.
+    // Shared depth queue for every map. Depth is the ground contact point,
+    // never the top of the picture. Map hooks paint floor decorations only;
+    // raised obstacles enter this queue exactly once through ArenaArt.solid.
+    const scene=[];
+    const add=(depth,priority,paint)=>scene.push({depth,priority,paint});
+    for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){
+      const t=grid[y][x];if(x===0||y===0||x===COLS-1||y===ROWS-1)continue;if(t!==TILE_WALL&&t!==TILE_BRICK||fallingKeys.has(y*COLS+x))continue;
+      add((y+1)*TILE,1,()=>{if(!ArenaArt.solid(ctx,game,x,y,t))drawTile(ctx,t===TILE_WALL?'wall':'brick',x*TILE,y*TILE);});
+    }
+    for(const pu of game.powerups)add(centerOf(pu.ty)+18,0,()=>drawPowerUp(ctx,pu));
+    for(const bomb of game.bombs)if(!bomb.inHand&&!bomb.flight)add(bomb.y+20,0,()=>drawBomb(ctx,bomb));
+    for(const br of game.breaking)add((br.ty+1)*TILE,1,()=>drawBreakingBrick(ctx,br));
+    for(const e of game.enemies)if((e.alive||e.dying)&&!e.carriedBy&&!e.gloveFlight)add(e.y+24,2,()=>drawEnemy(ctx,e,game));
+    for(const p of game.players)if((p.alive||p.dying)&&!p.carriedBy&&!p.gloveFlight)add(p.y+24,2,()=>drawPlayer(ctx,p,game));
+    scene.sort((a,b)=>a.depth-b.depth||a.priority-b.priority);
+    for(const item of scene)item.paint();
+    for(const ex of game.explosions)drawExplosion(ctx,ex);
     ArenaArt.overlays(ctx,game);
     if(typeof Deathmatch!=='undefined'&&Deathmatch.active(game))Deathmatch.drawBrickBars(ctx,game);
-    const actors=[...game.enemies.filter(e=>(e.alive||e.dying)&&!e.carriedBy&&!e.gloveFlight).map(e=>({entity:e,player:false})),...game.players.filter(p=>(p.alive||p.dying)&&!p.carriedBy&&!p.gloveFlight).map(p=>({entity:p,player:true}))];
-    actors.sort((a,b)=>a.entity.y-b.entity.y);
-    for(const actor of actors){if(actor.player)drawPlayer(ctx,actor.entity,game);else drawEnemy(ctx,actor.entity,game);}
+    for(const fb of game.falling)drawFallingBlock(ctx,fb,game);
     ArenaArt.airObjects(ctx,game);
     ArenaArt.portalFront(ctx,game);
     drawParticles(ctx, game.particles);
     drawFloaters(ctx, game.floaters);
+    ArenaArt.intiForeground?.(ctx,game);
 
     ctx.restore();
 

@@ -80,7 +80,7 @@ Object.assign(RitualSprites, {
     ctx.save();ctx.translate(p.x,p.y);
     if(p.dying){this.drawDefeat(ctx,p,phase);ctx.restore();return true;}
     if(p.portalTransit){const t=p.portalTransit,phase=t.age/t.duration,scale=Math.max(.08,Math.abs(phase*2-1));ctx.scale(scale,.85+.15*scale);ctx.globalAlpha=.3+.7*scale;}
-    if(p.wallPass&&game?.grid?.[tileOf(p.y)]?.[tileOf(p.x)]===TILE_BRICK)ctx.globalAlpha=.72;
+    if(p.wallPass&&game?.grid?.[tileOf(p.y)]?.[tileOf(p.x)]===TILE_BRICK)ctx.globalAlpha=1;
     if(!p.dying){
       ctx.fillStyle='rgba(0,0,0,.24)';ctx.beginPath();ctx.ellipse(0,18,16,4,0,0,Math.PI*2);ctx.fill();
       if(p.heartGuard){

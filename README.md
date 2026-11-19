@@ -54,3 +54,15 @@ El suelo del Inti usa losas de bajo contraste; todas las vasijas terracota son d
 - `js/`, `css/` e `icons/`: código, estilos e iconos.
 
 Para publicar, sube todo el contenido de la carpeta `github` conservando estas rutas e incluyendo `.github` y `.nojekyll`.
+
+
+## Necrópolis de Paracas
+
+Quinto escenario de batalla, disponible con bombas y en Deathmatch. Las momias son indestructibles; las piedras agrietadas sueltan ítems mediante las reglas normales. Las púas pasan 2,5 segundos retraídas (con aviso turquesa en los últimos 0,6) y 2,5 segundos extendidas. Dañan a los personajes y detonan bombas sobre ellas. Su ciclo se pausa con la partida. Los CPU consideran sus tiempos al buscar rutas.
+
+En los menús, las flechas y la cruceta mueven el foco; clic, Enter, X o círculo confirman o cambian el valor seleccionado. Triángulo permite volver. Elegir un mapa inicia directamente la partida.
+
+
+## Regla visual para nuevos mapas
+
+El suelo, trampas y dibujos planos se pintan en los hooks de terreno. Los obstáculos altos se dibujan exclusivamente en `ArenaArt.solid`; no deben repetirse en `currents`, `overlays` ni en la pasada final. El renderizador ordena obstáculos, bombas, ítems, personajes y enemigos por su punto de apoyo en el suelo (base para bloques, pies para personajes). Un elemento detrás se dibuja primero y uno delante después. Las bombas en vuelo y objetos del guante se reservan a la capa aérea. El Inti conserva su excepción explícita de primer plano. Los obstáculos de muerte súbita reutilizan el indestructible del mapa, tanto en vuelo como al aterrizar, mediante `ArenaArt.solid`.

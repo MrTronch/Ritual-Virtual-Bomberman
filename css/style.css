@@ -1001,3 +1001,30 @@ body.touch-ui #dpad{width:min(35vh,145px,calc(var(--control-rail,150px) - 4px))!
  body.touch-ui #hud .hud-item canvas{width:11px;height:11px;}
 }
 #touch-glove-icon{object-fit:contain;pointer-events:none;max-width:100%;max-height:100%;}
+
+#overlay-buttons.battle-maps>.battle-back{grid-column:1/-1;}
+
+#overlay-buttons.battle-maps{grid-template-columns:repeat(3,minmax(0,1fr));}
+#overlay-buttons.battle-maps>.map-card{min-width:0;}
+@media(orientation:landscape) and (max-height:600px){#overlay-buttons.battle-maps>.map-card canvas{max-height:16cqh;}#overlay-buttons.battle-maps>.map-card{font-size:8px;}#overlay-buttons.battle-maps{gap:5px;}}
+
+/* The cup is awarded only after the third victory, distinct from round results. */
+body.cup-victory #overlay {background:radial-gradient(ellipse at 50% 48%,#654425ee 0%,#182f38f5 55%,#171426fa 100%);box-shadow:inset 0 0 0 3px #e7b950;}
+body.cup-victory #overlay h1#overlay-title {color:#ffe59a;text-shadow:3px 3px 0 #7c4529,0 0 22px #f9bd4b66;}
+body.cup-victory #overlay-text {color:#ffe9bc;}
+body.cup-victory .victory-lineup {gap:clamp(8px,3cqw,40px);}
+.cup-trophy {width:clamp(100px,18cqw,180px);height:auto;max-height:100%;object-fit:contain;flex:0 1 auto;image-rendering:pixelated;filter:drop-shadow(0 0 14px #ffd66b60);animation:cup-float 2.4s ease-in-out infinite;}
+body.cup-victory #overlay-buttons button {border-color:#dab35c;}
+body.cup-victory #overlay-buttons button:first-child {background:#ffda78;color:#30213d;border-color:#fff0b8;}
+@keyframes cup-float {0%,100%{transform:translateY(3px);}50%{transform:translateY(-5px);}}
+@media(prefers-reduced-motion:reduce){.cup-trophy{animation:none;}}
+
+/* Player identity is shared by the preview, portrait cursor and ready state. */
+body.character-select #overlay-buttons .lobby-slot {box-shadow:0 5px 0 var(--slot-color);}
+body.character-select #overlay-buttons .lobby-slot.active {box-shadow:0 5px 0 var(--slot-color),inset 0 0 0 2px var(--slot-color);}
+body.character-select #overlay-buttons .lobby-slot strong,body.character-select #overlay-buttons .lobby-slot .selected-character-name {color:var(--slot-color);}
+body.character-select #overlay-buttons .lobby-slot.ready strong::after {content:' ✓';}
+body.character-select #overlay-buttons .character-card.claimed {border-color:var(--selector-color);box-shadow:inset 0 0 0 2px var(--selector-color);}
+body.character-select #overlay-buttons .character-card.claimed::after {display:block;content:attr(data-players);color:#161021;background:var(--selector-color);padding:4px 6px;border-radius:4px;font-size:10px;z-index:2;}
+body.character-select #overlay-buttons .character-card.focused {border-color:var(--selector-color,#fff)!important;outline:none;box-shadow:inset 0 0 0 2px var(--selector-color,#fff)!important;background:#321d40!important;}
+body.character-select #overlay-buttons .character-card.focused::before {display:none;}

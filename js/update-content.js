@@ -216,7 +216,7 @@ const baseSetupLevel=Game.prototype.setupLevel;
 Game.prototype.setupLevel=function(){this.settings.battle.map='small';baseSetupLevel.call(this);this.configureArenaContent();this.ensureCampaignExit();};
 
 const baseSaveDefaults=Save.defaults.bind(Save);Save.defaults=function(){const s=baseSaveDefaults();s.battle.stage='ritual';s.battle.duration=90;s.battle.extreme=true;s.battle.extremeDefaultsVersion=1;s.battle.cpuDefaultsVersion=1;s.battle.combat='classic';s.campaignCombat='classic';s.battle.format='cup';s.battle.formation='free';s.battle.teams=[0,1,0,1];return s;};
-const baseSanitize=Save.sanitize.bind(Save);Save.sanitize=function(s){baseSanitize(s);s.battle.map='small';if(!['classic','deathmatch'].includes(s.campaignCombat))s.campaignCombat='classic';if(!['classic','deathmatch'].includes(s.battle.combat))s.battle.combat='classic';if(s.battle.combat==='deathmatch'&&s.battle.stage==='overdrive')s.battle.stage='ritual';if(typeof s.battle.extreme!=='boolean')s.battle.extreme=true;if(![90,120,150,180].includes(s.battle.duration))s.battle.duration=90;if(!['ritual','jurassic','overdrive','inca'].includes(s.battle.stage))s.battle.stage='ritual';if(!['single','cup'].includes(s.battle.format))s.battle.format='cup';if(!['free','teams'].includes(s.battle.formation))s.battle.formation='free';if(!Array.isArray(s.battle.teams)||s.battle.teams.length!==4||s.battle.teams.filter(t=>t===0).length!==2||s.battle.teams.filter(t=>t===1).length!==2)s.battle.teams=[0,1,0,1];return s;};
+const baseSanitize=Save.sanitize.bind(Save);Save.sanitize=function(s){baseSanitize(s);s.battle.map='small';if(!['classic','deathmatch'].includes(s.campaignCombat))s.campaignCombat='classic';if(!['classic','deathmatch'].includes(s.battle.combat))s.battle.combat='classic';if(s.battle.combat==='deathmatch'&&s.battle.stage==='overdrive')s.battle.stage='ritual';if(typeof s.battle.extreme!=='boolean')s.battle.extreme=true;if(![90,120,150,180].includes(s.battle.duration))s.battle.duration=90;if(!['ritual','jurassic','overdrive','inca','paracas'].includes(s.battle.stage))s.battle.stage='ritual';if(!['single','cup'].includes(s.battle.format))s.battle.format='cup';if(!['free','teams'].includes(s.battle.formation))s.battle.formation='free';if(!Array.isArray(s.battle.teams)||s.battle.teams.length!==4||s.battle.teams.filter(t=>t===0).length!==2||s.battle.teams.filter(t=>t===1).length!==2)s.battle.teams=[0,1,0,1];return s;};
 Game.prototype.showBattleSetup=function(){
  this.state='setup';const b=this.settings.battle,teams=b.formation==='teams',minBots=Math.max(0,2-b.humans),maxBots=4-b.humans;
  b.bots=teams?maxBots:Math.min(maxBots,Math.max(minBots,b.bots));b.map='small';
@@ -241,13 +241,13 @@ Game.prototype.showBattleSetup=function(){
  this.ui.buttons.forEach((entry,i)=>entry.el.classList.add(i<settings.length?'battle-setting':i===settings.length?'battle-continue':'battle-back'));
 };
 Game.prototype.showBattleMaps=function(){
- this.state='setup';const b=this.settings.battle,stages=['ritual','jurassic','overdrive','inca'],labels=['RITUAL VIRTUAL','JURÁSICO','UKU PACHA','SANTUARIO DEL INTI'];
- this.ui.showOverlay({title:'MAPAS DE BATALLA',text:'PASO 2 DE 2 · '+b.humans+' HUMANO'+(b.humans>1?'S':'')+' · '+b.bots+' CPU',buttons:[
- ...stages.map((stage,i)=>({label:labels[i]+(b.stage===stage?' ✓':''),disabled:b.combat==='deathmatch'&&stage==='overdrive',action:()=>{b.stage=stage;this.saveSettings();this.showBattleMaps();this.ui.focusButton(i);}})),
- {label:this.controllersReady()?'▶ JUGAR':'CONECTA '+this.requiredControllers()+' MANDO'+(this.requiredControllers()>1?'S':'')+' · START',disabled:!this.controllersReady(),action:()=>this.startBattle()},
- {label:'VOLVER A LAS REGLAS',back:true,action:()=>this.showBattleSetup()}],help:b.combat==='deathmatch'?'Uku Pacha no está disponible en Deathmatch.':'Selecciona el escenario y pulsa Jugar.'});
+ this.state='setup';const b=this.settings.battle,stages=['ritual','jurassic','overdrive','inca','paracas'],labels=['RITUAL VIRTUAL','JURÁSICO','UKU PACHA','SANTUARIO DEL INTI','NECRÓPOLIS DE PARACAS'];
+ this.ui.showOverlay({title:'MAPAS DE BATALLA',text:'PASO 2 DE 2 · '+b.humans+' HUMANO'+(b.humans>1?'S':'')+' · '+b.bots+' CPU\nJ1 SELECCIONA EL MAPA',focus:Math.max(0,stages.indexOf(b.stage)),buttons:[
+ ...stages.map((stage,i)=>({label:labels[i]+(b.stage===stage?' ✓':''),disabled:b.combat==='deathmatch'&&stage==='overdrive',action:()=>{b.stage=stage;this.saveSettings();if(!this.controllersReady()){this.ui.setOverlayText('J1 SELECCIONA EL MAPA\n'+this.controllerMessage());return;}this.startBattle();}})),
+
+ {label:'VOLVER A LAS REGLAS',back:true,action:()=>this.showBattleSetup()}],help:b.combat==='deathmatch'?'Uku Pacha no está disponible en Deathmatch.':'J1: cruceta / stick para elegir · X / CÍRCULO: jugar · CUADRADO: volver.'});
  this.ui.overlayButtons.classList.add('battle-maps');
- this.ui.buttons.forEach((entry,i)=>{const btn=entry.el;if(i<stages.length){const stage=stages[i];btn.classList.add('map-card');btn.setAttribute('aria-pressed',String(stage===b.stage));const c=document.createElement('canvas');c.width=384;c.height=192;btn.prepend(c);const paint=()=>ArenaArt.worldPreview(c.getContext('2d'),stage,384,192);paint();if(ArenaArt[stage]&&!ArenaArt[stage].complete)ArenaArt[stage].addEventListener('load',paint,{once:true});}else btn.classList.add(i===stages.length?'battle-play':'battle-back');});
+ this.ui.buttons.forEach((entry,i)=>{const btn=entry.el;if(i<stages.length){const stage=stages[i];btn.classList.add('map-card');btn.setAttribute('aria-pressed',String(stage===b.stage));const c=document.createElement('canvas');c.width=384;c.height=192;btn.prepend(c);const paint=()=>ArenaArt.worldPreview(c.getContext('2d'),stage,384,192);paint();if(ArenaArt[stage]&&!ArenaArt[stage].complete)ArenaArt[stage].addEventListener('load',paint,{once:true});}else btn.classList.add('battle-back');});
 };
 Game.prototype.roundOver=function(winner){
  this.state='roundover';this.music.stop();const b=this.settings.battle,teams=b.formation==='teams',target=b.format==='single'?1:3;
@@ -257,10 +257,13 @@ Game.prototype.roundOver=function(winner){
  const label=winner?(teams?'EQUIPO '+['A','B'][winner.team]:winner.name):'';
  const standings=teams?`EQUIPO A: ${this.teamWins[0]} · EQUIPO B: ${this.teamWins[1]}`:this.players.map(p=>`${p.name}: ${p.wins}`).join(' · ');
  const complete=winner&&winner.wins>=target;
+ const cupComplete=complete&&b.format!=='single';
+ const resultTitle=cupComplete?(teams?`${label} GANA LA COPA`:winner.isBot?`${label} GANA LA COPA`:'¡GANAS LA COPA!'):(winner?`${label} GANA ${complete?'LA PARTIDA':'LA RONDA'}`:'RONDA EMPATADA');
  if(complete){if(winners.some(p=>!p.isBot)){this.settings.battleWins++;this.saveSettings();}this.sfx.victory();}else this.sfx.levelClear();
- this.ui.showOverlay({title:winner?`${label} GANA ${complete?'LA PARTIDA':'LA RONDA'}`:'RONDA EMPATADA',text:`${b.format==='single'?'SINGLE':'COPA · OBJETIVO: 3 VICTORIAS'}\n${standings}`,buttons:[{label:complete?'REVANCHA':winner?'SIGUIENTE RONDA':'REPETIR RONDA',action:()=>{if(complete)this.startBattle();else{this.level++;this.startLevel();}}},{label:'MENÚ PRINCIPAL',back:true,action:()=>this.showTitle()}]});
+ this.ui.showOverlay({title:resultTitle,text:`${cupComplete?label+' · CAMPEÓN · 3 VICTORIAS':b.format==='single'?'SINGLE':'COPA · OBJETIVO: 3 VICTORIAS'}\n${standings}`,buttons:[{label:complete?'REVANCHA':winner?'SIGUIENTE RONDA':'REPETIR RONDA',action:()=>{if(complete)this.startBattle();else{this.level++;this.startLevel();}}},{label:'MENÚ PRINCIPAL',back:true,action:()=>this.showTitle()}]});
  document.body.classList.add('round-results');
  if(winners.length)VictoryArt.show(this.ui,winners);
+ if(cupComplete)VictoryArt.showCup(this.ui);
 };
 
 

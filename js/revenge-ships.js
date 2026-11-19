@@ -115,7 +115,7 @@ Game.prototype.killPlayer=function(p,force=false,explosion=null){
  if(attacker&&attacker!==p&&!attacker.alive&&attacker.revengeShip?.token===explosion.revengeToken&&!(this.settings.battle.formation==='teams'&&attacker.team===p.team))this.returnFromShip(attacker,p);
 };
 const drawArenaWithShips=Renderer.draw;
-Renderer.draw=function(game){drawArenaWithShips(game);RevengeShips.cacheHeads();const ctx=game.ctx;ctx.save();ctx.imageSmoothingEnabled=false;RevengeShips.rail(ctx,game);RevengeShips.draw(ctx,game);ctx.restore();};
+Renderer.draw=function(game){drawArenaWithShips(game);RevengeShips.cacheHeads();const ctx=game.ctx;ctx.save();ctx.imageSmoothingEnabled=false;RevengeShips.draw(ctx,game);ctx.restore();};
 
 const spectateWithoutShip=Game.prototype.isSpectating;
 Game.prototype.isSpectating=function(){return !this.players.some(p=>!p.isBot&&p.revengeShip)&&spectateWithoutShip.call(this);};

@@ -1,4 +1,4 @@
-const CACHE = 'ritual-bomberman-v63-public';
+const CACHE = 'ritual-bomberman-v72-public';
 const ASSETS = [
   "./assets/interfaz/guante.webp",
   "./assets/mapas/uku-pacha/uku-pacha-sello-central.webp",
@@ -89,7 +89,11 @@ const ASSETS = [
   "./assets/personajes/caminata/psicogato-walk-matte.webp",
   "./assets/personajes/derrotas/reactions.webp",
   "./assets/personajes/caminata/sazonix-walk-matte.webp",
-  "./assets/personajes/caminata/sr-mr-walk-matte.webp"
+  "./assets/personajes/caminata/sr-mr-walk-matte.webp",
+  "./js/paracas-content.js",
+  "./assets/mapas/paracas/tiles.webp",
+  "./assets/mapas/paracas/muros.webp",
+  "./assets/mapas/paracas/desierto.webp"
 ];
 
 self.addEventListener('install', (event) => {
