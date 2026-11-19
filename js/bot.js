@@ -49,6 +49,19 @@ const BOT_TIERS = {
   },
 };
 
+// Touch play gives newcomers more room without slowing the human controls.
+const MobileBalance={
+ active(game){return !game.demo&&!!(game.ui?.coarse||game.ui?.isTouch?.());},
+ tiers:{
+  easy:{...BOT_TIERS.easy,reactionDelay:550,replanInterval:650,mistakeProb:.1,aggressionRadius:2,powerupRadius:1,bombInterval:3.2},
+  normal:{...BOT_TIERS.easy,reactionDelay:400,replanInterval:500,mistakeProb:.07,aggressionRadius:3,powerupRadius:2,maxEscapeLen:4,bombInterval:2.6},
+  hard:{...BOT_TIERS.normal,reactionDelay:260,replanInterval:350,mistakeProb:.04,aggressionRadius:4,powerupRadius:3,bombInterval:2}
+ },
+ config(game,tier){return this.active(game)?this.tiers[tier]||this.tiers.normal:BOT_TIERS[tier]||BOT_TIERS.normal;},
+ shipLimit(game,p){return p.isBot&&this.active(game)?1:2;},
+ shipCooldown(game,p){return p.isBot&&this.active(game)?3.5+Math.random()*.7:1;}
+};
+
 // Mimics the Input class API used by Player.update.
 class BotInput {
   constructor() {
@@ -184,6 +197,7 @@ class Bot {
     this.replanTimer = 0;
     this.reaction = 0;
     this.lastBombCount = 0;
+    this.mobileBombCooldown=1.2+Math.random()*.6;
     this.input.down.clear();
     this.input.pressed.clear();
   }
@@ -191,7 +205,8 @@ class Bot {
   // ------------------------------------------------------------------
   think(dt, game) {
     const p = this.player;
-    const cfg = this.cfg;
+    const cfg = this.cfg=MobileBalance.config(game,this.tier);
+    this.mobileBombCooldown=Math.max(0,this.mobileBombCooldown-dt);
     this.input.pressed.clear();
 
     const snap = Math.max(2, p.speed * dt * 1.05);
@@ -380,6 +395,7 @@ class Bot {
 
   tryBomb(game) {
     const p = this.player;
+    if(MobileBalance.active(game)&&this.mobileBombCooldown>0)return false;
     if (p.bombsActive >= p.maxBombs) return false;
     if (game.grid[p.ty][p.tx] !== TILE_EMPTY || game.bombAt(p.tx, p.ty)) return false;
     const d = botDangerMap(game, this.cfg, { tx: p.tx, ty: p.ty, range: p.range, timer: BOMB_FUSE }, p);
@@ -387,6 +403,7 @@ class Bot {
     const safe = nodes.find((n) => d[n.y][n.x].hitAt === Infinity);
     if (!safe) return false;
     this.input.pressed.add(p.keys.bomb[0]);
+    if(MobileBalance.active(game))this.mobileBombCooldown=(MobileBalance.config(game,this.tier).bombInterval)+Math.random()*.4;
     this.path = this.unwind(safe);
     this.replanTimer = this.cfg.replanInterval;
     return true;

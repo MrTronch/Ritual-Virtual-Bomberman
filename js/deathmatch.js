@@ -21,7 +21,7 @@ const Deathmatch={
   if(!this.eligible(p)||p.held||p.shotCooldown>1e-8||g.state!=='playing')return false;
   const d=DIRS[p.facing]||DIRS.down,origin=typeof DeathmatchSprites!=='undefined'?DeathmatchSprites.muzzle(p):{x:p.x+d.dx*24+d.dy*12,y:p.y-8-d.dx*0};
   (g.laserFlashes||(g.laserFlashes=[])).push({...origin,age:0});
-  g.laserShots.push({x:origin.x,y:origin.y+8,origin,dx:d.dx,dy:d.dy,owner:p,kind:p.bombKind||'normal',charged,damage:charged?4:p.bombKind==='spike'?4:p.bombKind==='napalm'?2:1,age:0});p.shotCooldown=this.fireInterval(p);
+  g.laserShots.push({x:origin.x,y:origin.y+8,origin,dx:d.dx,dy:d.dy,owner:p,kind:p.bombKind||'normal',charged,damage:charged?4:p.bombKind==='spike'?4:p.bombKind==='napalm'?2:1,age:0});p.shotCooldown=p.isBot&&MobileBalance.active(g)?Math.max(.7,this.fireInterval(p)*3):this.fireInterval(p);
   g.sfx.placeBomb();return true;
  },
  impact(g,s,x,y,target=null){

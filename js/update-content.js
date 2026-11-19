@@ -234,7 +234,7 @@ Game.prototype.showBattleSetup=function(){
  option(`COMBATE: ${b.combat==='deathmatch'?'DEATHMATCH':'BOMBAS'}`,d=>{move('combat',['classic','deathmatch'],d);if(b.combat==='deathmatch'&&b.stage==='overdrive')b.stage='ritual';})
  ];
  if(teams)for(let i=0;i<4;i++)settings.push(option(`${i<b.humans?'J'+(i+1):'CPU'+(i-b.humans+1)}: EQUIPO ${b.teams[i]===0?'A':'B'}`,()=>{const other=b.teams.findIndex((t,j)=>j!==i&&t!==b.teams[i]);[b.teams[i],b.teams[other]]=[b.teams[other],b.teams[i]];}));
- this.ui.showOverlay({title:'BATALLA',text:'CONFIGURA LA PARTIDA · PASO 1 DE 2',buttons:[...settings,
+ this.ui.showOverlay({title:'BATALLA',text:'CONFIGURA LA PARTIDA · PASO 1 DE 2'+(MobileBalance.active(this)?'\nCPU ADAPTADOS A CELULAR':''),buttons:[...settings,
  {label:'CONTINUAR',action:()=>{this.saveSettings();this.showBattleMaps();}},
  {label:'VOLVER',back:true,action:()=>this.showTitle()}],help:'Elige las reglas; después selecciona el mapa.'});
  this.ui.overlayButtons.classList.add('battle-rules');

@@ -87,7 +87,7 @@ Game.prototype.updateRevengeShips=function(dt){
  }
 };
 Game.prototype.launchRevengeBomb=function(p){
- const s=p.revengeShip;if(!s||!RevengeShips.open(this)||s.cooldown>0||RevengeShips.activeBombs(this,p)>=2)return false;
+ const s=p.revengeShip;if(!s||!RevengeShips.open(this)||s.cooldown>0||RevengeShips.activeBombs(this,p)>=MobileBalance.shipLimit(this,p))return false;
  const at=RevengeShips.point(s.distance),vertical=at.side===0||at.side===2,max=vertical?ROWS-2:COLS-2,depth=Math.max(1,Math.min(max,Math.round(s.depth)));
  let target={x:Math.max(1,Math.min(COLS-2,Math.floor(at.x))),y:Math.max(1,Math.min(ROWS-2,Math.floor(at.y)))};
  if(at.side===0)target.y=depth;else if(at.side===1)target.x=COLS-1-depth;else if(at.side===2)target.y=ROWS-1-depth;else target.x=depth;
@@ -96,7 +96,7 @@ Game.prototype.launchRevengeBomb=function(p){
  choices.sort((a,b)=>Math.abs(a.x-target.x)+Math.abs(a.y-target.y)-Math.abs(b.x-target.x)-Math.abs(b.y-target.y));
  if(!choices.length)return false;target=choices[0];
  const b=new Bomb(target.x,target.y,p,2,BOMB_FUSE);b.kind='normal';b.orphan=true;b.revengeOwner=p;b.revengeToken=s.token;
- b.flight={sx:at.x*TILE,sy:at.y*TILE,tx:target.x,ty:target.y,age:0,duration:.6};this.bombs.push(b);s.cooldown=1;this.sfx.placeBomb();return true;
+ b.flight={sx:at.x*TILE,sy:at.y*TILE,tx:target.x,ty:target.y,age:0,duration:.6};this.bombs.push(b);s.cooldown=MobileBalance.shipCooldown(this,p);this.sfx.placeBomb();return true;
 };
 Game.prototype.returnFromShip=function(p,near){
  if(!p.revengeShip||!RevengeShips.open(this))return false;
