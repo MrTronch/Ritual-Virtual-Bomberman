@@ -10,11 +10,11 @@ class GamepadInput {
  constructor(input,isMenu){
   this.input=input;this.isMenu=isMenu;this.held=Array.from({length:4},()=>new Set());this.menuMode=Array(4).fill(null);
   this.joined=Array(4).fill(null);this.joinStart=new Set();this.startHeld=new Map();this.rawHeld=new Map();this.repeatState=Array.from({length:4},()=>new Map());this.connected=0;this.onConnect=null;this.onJoin=null;this.menuOwner=()=>0;
-  try{this.profiles=JSON.parse(localStorage.getItem('ritual-pad-profiles')||'{}');}catch{this.profiles={};}this.neutralGate=new Set();
+  try{this.profiles=JSON.parse(localStorage.getItem('ritual-pad-profiles')||'{}');}catch{this.profiles={};}this.neutralGate=new Set();this.stickAxes=new Map();
   window.addEventListener('gamepadconnected',e=>{this.connected++;if(this.onConnect)this.onConnect(e.gamepad);});
   window.addEventListener('gamepaddisconnected',e=>{this.connected=Math.max(0,this.connected-1);this.releaseController(e.gamepad.index);});
  }
- releaseController(index){const slot=this.joined.indexOf(index);if(slot>=0){this.apply(slot,new Set(),false);this.joined[slot]=null;this.menuMode[slot]=null;}this.startHeld.delete(index);this.rawHeld.delete(index);if(slot>=0){if(this.lobbyHeld)this.lobbyHeld[slot]=new Set();this.repeatState[slot].clear();}this.neutralGate.delete(index);}
+ releaseController(index){const slot=this.joined.indexOf(index);if(slot>=0){this.apply(slot,new Set(),false);this.joined[slot]=null;this.menuMode[slot]=null;}this.startHeld.delete(index);this.rawHeld.delete(index);this.stickAxes.delete(index);if(slot>=0){if(this.lobbyHeld)this.lobbyHeld[slot]=new Set();this.repeatState[slot].clear();}this.neutralGate.delete(index);}
  ready(count){let pads;try{pads=Array.from(navigator.getGamepads?.()||[]);}catch{return false;}return this.joined.slice(0,count).every(index=>index!==null&&pads.some(p=>p&&p.connected&&p.index===index))&&new Set(this.joined.slice(0,count)).size===count;}
  pressed(pad,n){return !!(pad.buttons[n]&&(pad.buttons[n].pressed||pad.buttons[n].value>.5));}
  profile(pad){return this.profiles[pad.id]||{bomb:0,confirm:1,glove:2,back:3,start:9};}
@@ -74,8 +74,17 @@ class GamepadInput {
  codesFor(pad,map,menu,justJoined=false){
   const profile=this.profile(pad);
   const b=n=>this.pressed(pad,n),ax=pad.axes[0]||0,ay=pad.axes[1]||0,codes=new Set();
-  if(b(12)||ay<-.45)codes.add(map.up);if(b(13)||ay>.45)codes.add(map.down);
-  if(b(14)||ax<-.45)codes.add(map.left);if(b(15)||ax>.45)codes.add(map.right);
+  // The digital pad is explicit. Analogue diagonals choose one stable axis,
+  // so a slight thumb wobble cannot constantly change the requested turn.
+  const digital=[12,13,14,15].some(b);
+  if(digital){if(b(12))codes.add(map.up);if(b(13))codes.add(map.down);if(b(14))codes.add(map.left);if(b(15))codes.add(map.right);}
+  else if(Math.hypot(ax,ay)>.28){
+    let axis=this.stickAxes.get(pad.index)|| (Math.abs(ax)>Math.abs(ay)?'x':'y');
+    if(axis==='x'&&Math.abs(ay)>Math.abs(ax)*1.25)axis='y';
+    else if(axis==='y'&&Math.abs(ax)>Math.abs(ay)*1.25)axis='x';
+    this.stickAxes.set(pad.index,axis);
+    codes.add(axis==='x'?(ax<0?map.left:map.right):(ay<0?map.up:map.down));
+  }else this.stickAxes.delete(pad.index);
   if(menu){
    if(b(profile.bomb)||b(profile.confirm))codes.add('Enter');
    if(b(profile.glove))codes.add('Backspace');

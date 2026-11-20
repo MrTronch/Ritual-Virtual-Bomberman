@@ -38,14 +38,17 @@ class TouchControls {
     const distance=Math.hypot(dx,dy),limit=r.width*.28,k=distance>limit?limit/distance:1;
     this.pad.style.setProperty('--stick-x',dx*k+'px');this.pad.style.setProperty('--stick-y',dy*k+'px');this.pad.classList.add('engaged');
   }
-  resetStick(){this.pad.style.setProperty('--stick-x','0px');this.pad.style.setProperty('--stick-y','0px');this.pad.classList.remove('engaged');this.rect=null;}
+  resetStick(){this.stickAxis=null;this.pad.style.setProperty('--stick-x','0px');this.pad.style.setProperty('--stick-y','0px');this.pad.classList.remove('engaged');this.rect=null;}
   codesAt(e) {
     const r = this.rect || this.pad.getBoundingClientRect();
     const dx = e.clientX - (r.left + r.width / 2);
     const dy = e.clientY - (r.top + r.height / 2);
-    if (Math.hypot(dx, dy) < r.width * 0.12) return [];
-    const sector = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) & 7;
-    return this.sectors[sector];
+    if (Math.hypot(dx, dy) < r.width * 0.12){this.stickAxis=null;return [];}
+    let axis=this.stickAxis||(Math.abs(dx)>Math.abs(dy)?'x':'y');
+    if(axis==='x'&&Math.abs(dy)>Math.abs(dx)*1.25)axis='y';
+    else if(axis==='y'&&Math.abs(dx)>Math.abs(dy)*1.25)axis='x';
+    this.stickAxis=axis;
+    return [axis==='x'?(dx<0?'ArrowLeft':'ArrowRight'):(dy<0?'ArrowUp':'ArrowDown')];
   }
 
   apply(id, codes) {

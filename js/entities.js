@@ -184,6 +184,17 @@ class Player {
       for (const dir of dirs) {
         const v=DIRS[dir];this.facing=dir;
         let nx=this.x+v.dx*step, ny=this.y+v.dy*step;
+        // Centre in an open lane before turning. Correction spends the same
+        // movement budget as walking and is collision checked at every substep.
+        const offset=v.dx?centerOf(this.ty)-this.y:centerOf(this.tx)-this.x;
+        if(Math.abs(offset)>EPS&&Math.abs(offset)<TILE*.5){
+          const ax=v.dy?centerOf(this.tx):this.x,ay=v.dx?centerOf(this.ty):this.y;
+          const correction=Math.sign(offset)*Math.min(step,Math.abs(offset));
+          const cx=this.x+(v.dy?correction:0),cy=this.y+(v.dx?correction:0);
+          if(this.canStand(game,ax+v.dx*(this.half+2),ay+v.dy*(this.half+2))&&this.canStand(game,cx,cy)){
+            this.x=cx;this.y=cy;moved=true;break;
+          }
+        }
         if (this.canStand(game,nx,ny)) {this.x=nx;this.y=ny;moved=true;break;}
         if (this.canKick) {
           const leadX=tileOf(this.x+v.dx*(this.half+step));
@@ -193,7 +204,7 @@ class Player {
         }
         // A small corner assist slides toward the lane, never through a wall.
         const delta=v.dx ? centerOf(this.ty)-this.y : centerOf(this.tx)-this.x;
-        if (Math.abs(delta)>EPS && Math.abs(delta)<=TILE*.24) {
+        if (Math.abs(delta)>EPS && Math.abs(delta)<TILE*.5) {
           const align=Math.sign(delta)*Math.min(step,Math.abs(delta));
           nx=this.x+(v.dy?align:0);ny=this.y+(v.dx?align:0);
           // Only assist toward a lane which actually opens in the requested direction.
