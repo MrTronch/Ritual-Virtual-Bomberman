@@ -10,42 +10,45 @@
 const BOT_TIERS = {
   easy: {
     label: 'Easy',
-    reactionDelay: 400, // ms before noticing a new bomb
+    reactionDelay: 550, // ms before noticing a new bomb
     replanInterval: 500,
     mistakeProb: 0.1, // chance per replan to do something dumb
     margin: 150, // safety margin (ms) when timing flames
     lookahead: 1200, // ignore bombs with more fuse than this
     predictChains: false,
-    aggressionRadius: 3,
+    aggressionRadius: 2,
     powerupRadius: 1,
     enemyRadius: 1,
     maxEscapeLen: 3,
+    bombInterval: 3.6,
   },
   normal: {
     label: 'Normal',
-    reactionDelay: 150,
-    replanInterval: 250,
-    mistakeProb: 0.03,
+    reactionDelay: 350,
+    replanInterval: 450,
+    mistakeProb: 0.06,
     margin: 300,
     lookahead: Infinity,
     predictChains: true,
-    aggressionRadius: 6,
-    powerupRadius: 5,
+    aggressionRadius: 3,
+    powerupRadius: 3,
     enemyRadius: 2,
     maxEscapeLen: 4,
+    bombInterval: 2.9,
   },
   hard: {
     label: 'Hard',
-    reactionDelay: 0,
+    reactionDelay: 120,
     replanInterval: 100,
     mistakeProb: 0,
     margin: 450,
     lookahead: Infinity,
     predictChains: true,
-    aggressionRadius: 99,
+    aggressionRadius: 6,
     powerupRadius: 8,
     enemyRadius: 2,
     maxEscapeLen: 5,
+    bombInterval: 1.8,
   },
 };
 
@@ -53,13 +56,13 @@ const BOT_TIERS = {
 const MobileBalance={
  active(game){return !game.demo&&!!(game.ui?.coarse||game.ui?.isTouch?.());},
  tiers:{
-  easy:{...BOT_TIERS.easy,reactionDelay:550,replanInterval:650,mistakeProb:.1,aggressionRadius:2,powerupRadius:1,bombInterval:3.2},
-  normal:{...BOT_TIERS.easy,reactionDelay:400,replanInterval:500,mistakeProb:.07,aggressionRadius:3,powerupRadius:2,maxEscapeLen:4,bombInterval:2.6},
-  hard:{...BOT_TIERS.normal,reactionDelay:260,replanInterval:350,mistakeProb:.04,aggressionRadius:4,powerupRadius:3,bombInterval:2}
+  easy:{...BOT_TIERS.easy,reactionDelay:650,replanInterval:700,mistakeProb:.1,aggressionRadius:2,powerupRadius:1,bombInterval:4.2},
+  normal:{...BOT_TIERS.easy,reactionDelay:500,replanInterval:600,mistakeProb:.07,aggressionRadius:2,powerupRadius:2,maxEscapeLen:4,bombInterval:3.5},
+  hard:{...BOT_TIERS.normal,reactionDelay:260,replanInterval:350,mistakeProb:.04,aggressionRadius:4,powerupRadius:3,bombInterval:2.5}
  },
  config(game,tier){return this.active(game)?this.tiers[tier]||this.tiers.normal:BOT_TIERS[tier]||BOT_TIERS.normal;},
  shipLimit(game,p){return p.isBot&&this.active(game)?1:2;},
- shipCooldown(game,p){return p.isBot&&this.active(game)?3.5+Math.random()*.7:1;}
+ shipCooldown(game,p){return p.isBot?(this.active(game)?4+Math.random()*.7:2.5):1;}
 };
 
 // Mimics the Input class API used by Player.update.
@@ -395,7 +398,7 @@ class Bot {
 
   tryBomb(game) {
     const p = this.player;
-    if(MobileBalance.active(game)&&this.mobileBombCooldown>0)return false;
+    if(this.mobileBombCooldown>0)return false;
     if (p.bombsActive >= p.maxBombs) return false;
     if (game.grid[p.ty][p.tx] !== TILE_EMPTY || game.bombAt(p.tx, p.ty)) return false;
     const d = botDangerMap(game, this.cfg, { tx: p.tx, ty: p.ty, range: p.range, timer: BOMB_FUSE }, p);
@@ -403,7 +406,7 @@ class Bot {
     const safe = nodes.find((n) => d[n.y][n.x].hitAt === Infinity);
     if (!safe) return false;
     this.input.pressed.add(p.keys.bomb[0]);
-    if(MobileBalance.active(game))this.mobileBombCooldown=(MobileBalance.config(game,this.tier).bombInterval)+Math.random()*.4;
+    this.mobileBombCooldown=(MobileBalance.config(game,this.tier).bombInterval)+Math.random()*.4;
     this.path = this.unwind(safe);
     this.replanTimer = this.cfg.replanInterval;
     return true;
