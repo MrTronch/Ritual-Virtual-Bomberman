@@ -102,15 +102,16 @@ class Game {
       title: 'BOMBERMAN',
       text: 'Destruye bloques, derrota a los enemigos y encuentra la salida.\nPsicogato · Bunnylicious · Perrotech · Sazonix · Sr. Mr.',
       buttons: [
-        { label: 'CAMPAÑA', action: () => this.showCharacterSelect(() => this.showCampaignSetup()) },
-        { label: 'BATALLA', action: () => this.showCharacterSelect(() => this.showBattleSetup(), true) },
+        { label: 'BATALLA', action: () => {this.settings.battle.combat='classic';this.showCharacterSelect(() => this.showBattleSetup(), true);} },
+        { label: 'DEATHMATCH', action: () => {this.settings.battle.combat='deathmatch';if(this.settings.battle.stage==='overdrive')this.settings.battle.stage='ritual';this.showCharacterSelect(() => this.showBattleSetup(), true);} },
+        { label: 'CAMPAÑA', action: () => {this.settings.campaignCombat='classic';this.showCharacterSelect(() => this.showCampaignSetup());} },
         { label: 'AJUSTES', action: () => this.showOptions() },
         { label: 'CÓMO JUGAR', action: () => this.showHelp() },
       ],
       help:
         `High scores  Easy ${hs.easy}  ·  Normal ${hs.normal}  ·  Hard ${hs.hard}\n` +
         `Battle matches won: ${this.settings.battleWins}\n` +
-        this.keyHint('Press 1-4 to choose · Enter to confirm'),
+        this.keyHint('Press 1-5 to choose · Enter to confirm'),
     });
   }
 
@@ -198,7 +199,7 @@ class Game {
     this.settings.battle.bots=Math.min(4-this.settings.battle.humans,this.settings.battle.bots);this.saveSettings();
     if(live){for(let i=0;i<=slot;i++){const p=this.players[i];if(p){p.bot=null;p.keys=this.playerKeys(i);p.name=CHARACTERS.find(c=>c.id===p.character).name;}}this.ui.buildHud(this.players,2);this.ui.updateHud(this);}
     else if(this.lobby?.battle)this.showCharacterSelect(this.lobby.next,true,slot);
-    else if(this.ui.overlayTitle.textContent==='MAPAS DE BATALLA')this.showBattleMaps();else if(['BATTLE','BATALLA'].includes(this.ui.overlayTitle.textContent))this.showBattleSetup();
+    else if(this.ui.overlayTitle.textContent==='MAPAS DE BATALLA')this.showBattleMaps();else if(['BATTLE','BATALLA','DEATHMATCH'].includes(this.ui.overlayTitle.textContent))this.showBattleSetup();
     return true;
   }
 

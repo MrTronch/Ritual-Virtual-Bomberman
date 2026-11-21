@@ -67,7 +67,7 @@ ArenaArt.worldPreview=function(ctx,stage,w,h){if(stage!=='inca')return previewBe
 Game.prototype.blockDamage=function(e,owner){if(Deathmatch.active(this))return Deathmatch.hit(this,e,3,owner);if(!e.alive||e.isBoss&&e.iframes>0)return false;e.hp=(e.hp??1)-3;if(e.hp<=0)this.killEnemy(e,owner);else if(e.isBoss)e.iframes=BOSS_IFRAMES;return true;};
 const gloveBeforeBlocks=Game.prototype.useGlove;
 Game.prototype.useGlove=function(p){if(!p.alive||!p.canPunch||p.carriedBy||p.gloveFlight)return false;const d=DIRS[p.facing]||DIRS.down;
- if(p.held?.kind==='block'){let target=null;for(let n=1;n<=3;n++){const x=p.tx+d.dx*n,y=p.ty+d.dy*n;if(x<1||y<1||x>=COLS-1||y>=ROWS-1||this.grid[y][x]===TILE_WALL)break;target={x,y};if(this.grid[y][x]===TILE_BRICK||this.enemies.some(e=>e.alive&&e.tx===x&&e.ty===y))break;}if(!target)return false;p.held=null;(this.thrownBlocks||(this.thrownBlocks=[])).push({owner:p,flight:{sx:p.x,sy:p.y-40,tx:target.x,ty:target.y,age:0,duration:.4}});this.sfx.placeBomb();return true;}
+ if(p.held?.kind==='block'){let target=null;for(let n=1;n<=3;n++){const x=p.tx+d.dx*n,y=p.ty+d.dy*n;if(x<1||y<1||x>=COLS-1||y>=ROWS-1||this.grid[y][x]===TILE_WALL)break;target={x,y};if(this.grid[y][x]===TILE_BRICK||this.enemies.some(e=>e.alive&&e.tx===x&&e.ty===y))break;}if(!target)return false;const object=p.held.object;p.held=null;(this.thrownBlocks||(this.thrownBlocks=[])).push({owner:p,object,flight:{sx:p.x,sy:p.y-40,tx:target.x,ty:target.y,age:0,duration:.4}});this.sfx.placeBomb();return true;}
  if(!p.held){const x=p.tx+d.dx,y=p.ty+d.dy;if(this.grid[y]?.[x]===TILE_BRICK){this.grid[y][x]=TILE_EMPTY;this.brickHp?.delete(tileKey(x,y));p.held={kind:'block',object:{tx:x,ty:y,variant:(x*7+y*3)%4}};this.sfx.placeBomb();return true;}}
  return gloveBeforeBlocks.call(this,p);
 };
@@ -87,7 +87,7 @@ Game.prototype.updateArenaHazards=function(dt){hazardsBeforeInca.call(this,dt);
  }
 };
 const airBeforeInca=ArenaArt.airObjects;
-ArenaArt.airObjects=function(ctx,g){airBeforeInca.call(this,ctx,g);for(const p of g.players)if(p.alive&&p.held?.kind==='block')ctx.drawImage(Inca.tile('brick',p.held.object.variant||0),p.x-21,p.y-94,42,42);for(const b of g.thrownBlocks||[]){const t=this.flightPoint(b.flight);ctx.drawImage(Inca.tile('brick',b.variant||0),t.x-21,t.y-21,42,42);}for(const s of g.bossShots||[]){ctx.fillStyle='#f96189';ctx.fillRect(s.x-7,s.y-11,14,14);ctx.fillStyle='#fff0a2';ctx.fillRect(s.x-3,s.y-7,6,6);}for(const b of g.enemies)if(b.isBoss&&b.intiShotTimer<.65){ctx.strokeStyle='#ff9b99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y-14,24,0,Math.PI*2);ctx.stroke();}};
+ArenaArt.airObjects=function(ctx,g){airBeforeInca.call(this,ctx,g);for(const p of g.players)if(p.alive&&p.held?.kind==='block')this.carriedBlock(ctx,g,p.held.object,p.x-21,p.y-94);for(const b of g.thrownBlocks||[]){const t=this.flightPoint(b.flight);this.carriedBlock(ctx,g,b.object||{},t.x-21,t.y-21);}for(const s of g.bossShots||[]){ctx.fillStyle='#f96189';ctx.fillRect(s.x-7,s.y-11,14,14);ctx.fillStyle='#fff0a2';ctx.fillRect(s.x-3,s.y-7,6,6);}for(const b of g.enemies)if(b.isBoss&&b.intiShotTimer<.65){ctx.strokeStyle='#ff9b99';ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y-14,24,0,Math.PI*2);ctx.stroke();}};
 const dangerBeforeInca=Game.prototype.buildDangerMap;
 Game.prototype.buildDangerMap=function(...a){const out=dangerBeforeInca?.apply(this,a);for(const t of this.inti?.targets||[])if(this.danger&&this.danger[t.y*COLS+t.x]!==2)this.danger[t.y*COLS+t.x]=1;return out;};
 
@@ -157,14 +157,14 @@ Game.prototype.collectPowerUp=function(p,pu){if(Deathmatch.active(this)&&pu.type
 const updateBeforeItemCleanup=Game.prototype.update;
 Game.prototype.update=function(dt){this.normalizeDeathmatchItems();const out=updateBeforeItemCleanup.call(this,dt);this.normalizeDeathmatchItems();return out;};
 // CPU glove actions share the same collision, pickup and throw rules as human actions.
-Game.prototype.updateCpuGloves=function(dt){for(const p of this.players){if(!p.isBot||!p.alive||!p.canPunch||p.carriedBy||p.gloveFlight||p.portalTransit)continue;p.cpuGloveWait=Math.max(0,(p.cpuGloveWait||0)-dt);if(p.cpuGloveWait>0)continue;
+Game.prototype.updateCpuGloves=function(dt){for(const p of this.players){if(!p.isBot||!p.alive||!p.canPunch||p.carriedBy||p.gloveFlight||p.portalTransit)continue;p.cpuGloveWait=Math.max(0,(p.cpuGloveWait||0)-dt);if(p.cpuGloveWait>0)continue;if(!p.held){p.cpuGloveWait=MobileBalance.active(this)?4:3;if(Math.random()>.3)continue;}
  const opponents=[...this.players.filter(e=>e!==p&&!(this.settings.battle.formation==='teams'&&e.team===p.team)),...this.enemies].filter(e=>e.alive&&!e.carriedBy);
  const target=opponents.sort((a,b)=>Math.abs(a.x-p.x)+Math.abs(a.y-p.y)-Math.abs(b.x-p.x)-Math.abs(b.y-p.y))[0];
  const aim=target?(Math.abs(target.x-p.x)>Math.abs(target.y-p.y)?target.x<p.x?'left':'right':target.y<p.y?'up':'down'):p.facing;
- if(p.held){p.facing=aim;let used=this.useGlove(p);if(!used)for(const dir of DIR_LIST){p.facing=dir;if(this.useGlove(p)){used=true;break;}}p.cpuGloveWait=used?.65:.2;continue;}
+ if(p.held){p.facing=aim;let used=this.useGlove(p);if(!used)for(const dir of DIR_LIST){p.facing=dir;if(this.useGlove(p)){used=true;break;}}p.cpuGloveWait=used?4:.8;continue;}
  const bomb=this.bombs.find(b=>!b.inHand&&!b.flight&&Math.abs(b.tx-p.tx)+Math.abs(b.ty-p.ty)<=1);
- if(bomb){p.facing=bomb.tx===p.tx&&bomb.ty===p.ty?aim:bomb.tx<p.tx?'left':bomb.tx>p.tx?'right':bomb.ty<p.ty?'up':'down';if(this.useGlove(p))p.cpuGloveWait=.28;continue;}
- const dir=DIRS[aim];if(dir&&this.grid[p.ty+dir.dy]?.[p.tx+dir.dx]===TILE_BRICK){p.facing=aim;if(this.useGlove(p))p.cpuGloveWait=.35;}
+ if(bomb){p.facing=bomb.tx===p.tx&&bomb.ty===p.ty?aim:bomb.tx<p.tx?'left':bomb.tx>p.tx?'right':bomb.ty<p.ty?'up':'down';if(this.useGlove(p))p.cpuGloveWait=1.4;continue;}
+ const dir=DIRS[aim];if(dir&&this.grid[p.ty+dir.dy]?.[p.tx+dir.dx]===TILE_BRICK){p.facing=aim;if(this.useGlove(p))p.cpuGloveWait=1.4;}
  }};
 const hazardsBeforeCpuGloves=Game.prototype.updateArenaHazards;
 Game.prototype.updateArenaHazards=function(dt){hazardsBeforeCpuGloves.call(this,dt);if(this.state==='playing')this.updateCpuGloves(dt);this.normalizeDeathmatchItems();};
@@ -310,9 +310,12 @@ Game.prototype.throwGlove=function(p){const held=p.held;if(!held||!p.alive)retur
  if(path.length<2)return false;const flight={sx:p.x,sy:p.y-52,tx:x,ty:y,age:0,duration:.4+distance*.055,path,bounces};p.held=null;p.gloveCharging=false;p.gloveCharge=0;
  if(held.kind==='entity'){held.object.carriedBy=null;held.object.gloveFlight=flight;}
  else if(held.kind==='bomb'){const b=held.object;b.inHand=null;b.currentTarget=null;b.flight=flight;b.x=centerOf(x);b.y=centerOf(y);b.walkers.clear();}
- else if(held.kind==='block')this.thrownBlocks.push({owner:p,variant:held.object.variant||0,flight});
+ else if(held.kind==='block')this.thrownBlocks.push({owner:p,object:held.object,variant:held.object.variant||0,flight});
  else this.thrownItems.push({object:held.object,flight});this.sfx.placeBomb();return true;};
 const gloveArc=ArenaArt.flightPoint;
 ArenaArt.flightPoint=function(f){if(!f.path)return gloveArc.call(this,f);const t=Math.min(1,f.age/f.duration),v=t*(f.path.length-1),i=Math.min(f.path.length-2,Math.floor(v)),q=v-i,a=f.path[i],b=f.path[i+1];return {x:a.x+(b.x-a.x)*q,y:a.y+(b.y-a.y)*q-Math.abs(Math.sin(v*Math.PI))*18-Math.sin(t*Math.PI)*32};};
 // The sun sits above scene actors; only airborne bombs are repainted over it.
 ArenaArt.intiForeground=function(ctx,g){if(!g.inti)return;const v=g.inti,size=TILE*2.5,x=centerOf(v.x),y=centerOf(v.y)-25,charge=Math.max(0,Math.min(1,(2.2-v.until)/2.2));ctx.save();ctx.beginPath();ctx.rect(x-size*.6,y-size, size*1.2,size*1.19);ctx.clip();Inca.sun(ctx,x,y,size,charge);ctx.restore();for(const b of g.bombs)if(b.flight&&!b.exploded){const a=this.flightPoint(b.flight);PixelFX.bomb(ctx,{...b,x:a.x,y:a.y});}};
+
+// Carried and airborne bricks use the same map renderer as standing bricks.
+ArenaArt.carriedBlock=function(ctx,g,object,x,y){const tx=object.tx??1,ty=object.ty??1;ctx.save();ctx.translate(x,y);ctx.scale(42/TILE,42/TILE);ctx.translate(-tx*TILE,-ty*TILE);if(!this.solid(ctx,g,tx,ty,TILE_BRICK))Renderer.drawTile(ctx,'brick',tx*TILE,ty*TILE);ctx.restore();};

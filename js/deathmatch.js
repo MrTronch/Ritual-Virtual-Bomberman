@@ -1,6 +1,7 @@
 // Deathmatch rules stay isolated from the classic campaign and bomb battles.
 const Deathmatch={
  active(g){return !g.demo&&(g.mode===1?g.settings.campaignCombat==='deathmatch':g.mode===2&&g.settings.battle.combat==='deathmatch'&&g.settings.battle.stage!=='overdrive');},
+ npcCount(g){return MobileBalance.active(g)?4:6;},
  cooldown:.5,chargeSeconds:1.5,shotSpeed:620,
  equip(p){p.hp=15;p.maxHp=15;p.canPunch=true;p.speedLevel=4;p.range=1;p.heartGuard=false;p.deathmatchArmed=true;p.speedDropBase=4;p.fireRateLevel=p.fireRateLevel||0;p.shotCooldown=0;p.shotCharge=0;p.shotCharging=false;p.bombKind='normal';},
  fireInterval(p){return Math.max(.2,this.cooldown-(p.fireRateLevel||0)*.1);},
@@ -21,7 +22,7 @@ const Deathmatch={
   if(!this.eligible(p)||p.held||p.shotCooldown>1e-8||g.state!=='playing')return false;
   const d=DIRS[p.facing]||DIRS.down,origin=typeof DeathmatchSprites!=='undefined'?DeathmatchSprites.muzzle(p):{x:p.x+d.dx*24+d.dy*12,y:p.y-8-d.dx*0};
   (g.laserFlashes||(g.laserFlashes=[])).push({...origin,age:0});
-  g.laserShots.push({x:origin.x,y:origin.y+8,origin,dx:d.dx,dy:d.dy,owner:p,kind:p.bombKind||'normal',charged,damage:charged?4:p.bombKind==='spike'?4:p.bombKind==='napalm'?2:1,age:0});p.shotCooldown=p.isBot&&MobileBalance.active(g)?Math.max(.7,this.fireInterval(p)*3):this.fireInterval(p);
+  g.laserShots.push({x:origin.x,y:origin.y+8,origin,dx:d.dx,dy:d.dy,owner:p,kind:p.bombKind||'normal',charged,damage:charged?4:p.bombKind==='spike'?4:p.bombKind==='napalm'?2:1,age:0});p.shotCooldown=p.isBot?Math.max(MobileBalance.active(g)?1.6:1.2,this.fireInterval(p)*4):this.fireInterval(p);
   g.sfx.placeBomb();return true;
  },
  impact(g,s,x,y,target=null){
@@ -72,7 +73,7 @@ Game.prototype.setupLevel=function(){deathmatchSetup.call(this);this.laserShots=
  for(const p of this.players)Deathmatch.equip(p);
  this.powerups=this.powerups.filter(p=>p.type!=='fire');
  for(const e of this.enemies)if(!e.isBoss)e.hp=e.maxHp=2;
- const spawns=this.players.map(p=>({x:p.tx,y:p.ty}));for(let n=0;n<(this.mode===2?8:2);n++){const e=this.spawnEnemy(['balloom','oneal','doll'][n%3],spawns,1);if(e){e.hp=e.maxHp=2;}}
+ const spawns=this.players.map(p=>({x:p.tx,y:p.ty}));for(let n=0;n<(this.mode===2?Deathmatch.npcCount(this):2);n++){const e=this.spawnEnemy(['balloom','oneal','doll'][n%3],spawns,1);if(e){e.hp=e.maxHp=2;}}
 };
 const deathmatchPlace=Game.prototype.tryPlaceBomb;
 Game.prototype.tryPlaceBomb=function(p){if(Deathmatch.active(this))return false;return deathmatchPlace.call(this,p);};

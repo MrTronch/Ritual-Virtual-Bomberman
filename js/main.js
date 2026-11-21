@@ -313,12 +313,12 @@ class UI {
   pads.onJoin=(slot,pad)=>{
     if(pad.mapping!=='standard'&&!pads.profiles[pad.id]){
       const lobby=game.lobby,title=ui.overlayTitle.textContent;
-      game.showControllerSetup(pad,()=>{if(pads.profiles[pad.id]){pads.joined[slot]=pad.index;game.joinController(slot);}if(lobby)game.showCharacterSelect(lobby.next,lobby.battle,slot);else if(['BATALLA','BATTLE'].includes(title))game.showBattleSetup();else if(title==='MAPAS DE BATALLA')game.showBattleMaps();else game.showTitle();});return false;
+      game.showControllerSetup(pad,()=>{if(pads.profiles[pad.id]){pads.joined[slot]=pad.index;game.joinController(slot);}if(lobby)game.showCharacterSelect(lobby.next,lobby.battle,slot);else if(['BATALLA','BATTLE','DEATHMATCH'].includes(title))game.showBattleSetup();else if(title==='MAPAS DE BATALLA')game.showBattleMaps();else game.showTitle();});return false;
     }
     const accepted=game.joinController(slot);if(accepted)game.floaters.push(new Floater('MANDO J'+(slot+1)+' LISTO',CANVAS_W/2,CANVAS_H-40,'#c3ff85',16,2000));return accepted;};
   window.gamepads=pads;
   pads.controllerOnly=()=>game.requiresControllers();
-  pads.onAssignmentsChanged=()=>{if(game.state==='setup'){if(ui.overlayTitle.textContent==='MAPAS DE BATALLA')game.showBattleMaps();else if(['BATALLA','BATTLE'].includes(ui.overlayTitle.textContent))game.showBattleSetup();}};
+  pads.onAssignmentsChanged=()=>{if(game.state==='setup'){if(ui.overlayTitle.textContent==='MAPAS DE BATALLA')game.showBattleMaps();else if(['BATALLA','BATTLE','DEATHMATCH'].includes(ui.overlayTitle.textContent))game.showBattleSetup();}};
   pads.onConnect = (pad) => {
     game.floaters.push(new Floater('MANDO CONECTADO · PULSA START', CANVAS_W / 2, CANVAS_H - 40, '#aed581', 16, 2000));
   };

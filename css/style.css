@@ -1032,3 +1032,7 @@ body.character-select #overlay-buttons .character-card.focused::before {display:
 /* Small creator signature, visible above the game and menus. */
 #creator-credit {position:absolute;top:9px;right:12px;z-index:20;pointer-events:none;user-select:none;font-family:'Ritual Pixel',monospace;font-size:12px;line-height:1.4;letter-spacing:.04em;color:#f5eaff;text-shadow:1px 1px 0 #160d23,0 0 3px #160d23;opacity:1;background:#160d23b8;padding:4px 6px;border-radius:4px;white-space:nowrap;}
 body.touch-ui #creator-credit {top:7px;right:9px;font-size:9px;padding:2px 4px;}
+
+/* Keep the final action on its own centred row, after the settings and Back. */
+#overlay-buttons.battle-rules>.battle-continue {grid-column:1/-1;justify-self:center;width:calc((100% - 12px)/2);margin-top:5px;}
+@media(orientation:landscape) and (max-height:600px){#overlay-buttons.battle-rules>.battle-continue{width:calc((100% - 7px)/2);}}

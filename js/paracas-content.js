@@ -1,3 +1,5 @@
+THEMES.paracas={...THEMES.desert,name:'Necrópolis de Paracas'};
+WORLD_ORDER.push('paracas');WORLD_TEMPLATES.paracas=['classic','rooms','cross','arena','arena'];BOSSES.paracas={...BOSSES.desert,name:'Guardián de Paracas'};
 // Necrópolis de Paracas: art layers and timed spikes use existing game collision/damage rules.
 const Paracas={images:{},tiles:new Map(),halfCycle:2.5,period:5,warning:.6,
  rects:{mummy:[42,17,173,240],mummy2:[224,17,170,240],stone:[792,80,143,142],stone2:[951,80,143,142],stone3:[1109,80,143,142],floor:[894,280,148,148],floor2:[1061,280,148,148],floor3:[1228,280,148,148],seal:[482,270,371,330],plant:[947,465,84,67],spikes:[106,364,107,65],retracted:[283,364,107,65]},
@@ -16,7 +18,7 @@ const Paracas={images:{},tiles:new Map(),halfCycle:2.5,period:5,warning:.6,
 };
 for(const [key,name] of Object.entries({tiles:'tiles',walls:'muros',background:'desierto'})){const im=new Image();im.onload=()=>{Paracas.images[key]=im;Paracas.tiles.clear();Renderer.forceRebuild();};im.src='assets/mapas/paracas/'+name+'.webp';}
 const paracasConfigure=Game.prototype.configureArenaContent;
-Game.prototype.configureArenaContent=function(){paracasConfigure.call(this);this.paracas=null;if(this.mode!==2||this.settings.battle.stage!=='paracas')return;
+Game.prototype.configureArenaContent=function(){paracasConfigure.call(this);this.paracas=null;if(!(this.mode===2&&this.settings.battle.stage==='paracas'||this.mode===1&&this.campaignStage().theme==='paracas'))return;
  this.arenaStyle='paracas';this.inti=null;this.portals=[];this.volcano=null;this.exit=null;this.powerups=[];this.grid=Array.from({length:ROWS},(_,y)=>Array.from({length:COLS},(_,x)=>x===0||y===0||x===COLS-1||y===ROWS-1?TILE_WALL:TILE_EMPTY));
  const cx=Math.floor(COLS/2),cy=Math.floor(ROWS/2),traps=[];
  for(const x of [4,COLS-5])for(let y=5;y<=8;y++)traps.push({x,y});
@@ -28,7 +30,7 @@ Game.prototype.configureArenaContent=function(){paracasConfigure.call(this);this
  for(let x=3;x<COLS-3;x+=3)for(const y of [1,ROWS-2])if(this.grid[y][x]===TILE_EMPTY)this.grid[y][x]=TILE_BRICK;
  for(let y=3;y<ROWS-3;y+=3)for(const x of [1,COLS-2])if(this.grid[y][x]===TILE_EMPTY)this.grid[y][x]=TILE_BRICK;
  for(const p of this.players)for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const x=p.spawn.x+dx,y=p.spawn.y+dy;if(x>0&&y>0&&x<COLS-1&&y<ROWS-1)this.grid[y][x]=TILE_EMPTY;}
- this.paracas={clock:0,traps,trapKeys,mummyKeys:new Set(mummy.filter(([x,y])=>this.grid[y]?.[x]===TILE_WALL&&x>0&&y>0&&x<COLS-1&&y<ROWS-1).map(([x,y])=>tileKey(x,y)))};for(const e of [...this.players,...this.enemies])e.paracasHitUntil=0;this.enemies=this.enemies.filter(e=>this.grid[e.ty]?.[e.tx]===TILE_EMPTY&&!trapKeys.has(tileKey(e.tx,e.ty)));this.brickHp?.clear();if(Deathmatch.active(this))for(let y=1;y<ROWS-1;y++)for(let x=1;x<COLS-1;x++)if(this.grid[y][x]===TILE_BRICK)this.brickHp.set(tileKey(x,y),3);
+ this.paracas={clock:0,traps,trapKeys,mummyKeys:new Set(mummy.filter(([x,y])=>this.grid[y]?.[x]===TILE_WALL&&x>0&&y>0&&x<COLS-1&&y<ROWS-1).map(([x,y])=>tileKey(x,y)))};for(const e of [...this.players,...this.enemies])e.paracasHitUntil=0;this.enemies=this.enemies.filter(e=>this.grid[e.ty]?.[e.tx]===TILE_EMPTY&&!trapKeys.has(tileKey(e.tx,e.ty)));this.brickHp?.clear();if(Deathmatch.active(this))for(let y=1;y<ROWS-1;y++)for(let x=1;x<COLS-1;x++)if(this.grid[y][x]===TILE_BRICK)this.brickHp.set(tileKey(x,y),3);if(this.mode===1)this.ensureCampaignExit();
 };
 const paracasFloor=ArenaArt.floor,paracasSolid=ArenaArt.solid;
 ArenaArt.floor=function(ctx,g,x,y){if(g.arenaStyle!=='paracas')return paracasFloor.call(this,ctx,g,x,y);const seed=(x*7+y*3)%8,v=seed<6?0:seed-5;let tile=Paracas.tiles.get(v);if(!tile&&Paracas.images.tiles){tile=document.createElement('canvas');tile.width=tile.height=TILE;const c=tile.getContext('2d');c.fillStyle='#c67338';c.fillRect(0,0,TILE,TILE);Paracas.sprite(c,['floor','floor2','floor3'][v],0,0,TILE,TILE);Paracas.tiles.set(v,tile);}if(tile)ctx.drawImage(tile,x*TILE,y*TILE);else{ctx.fillStyle='#c67338';ctx.fillRect(x*TILE,y*TILE,TILE,TILE);}return true;};
@@ -74,4 +76,17 @@ Paracas.frame=function(ctx,g){if(!this.images.walls||!this.images.tiles)return;c
  for(const q of corners){const t=fit('walls',q.r,q.x,q.y,96,144);for(const e of q.e)eyes.push({x:t.x+e[0]*t.k,y:t.y+e[1]*t.k});}
  entry={canvas:c,eyes};this.wallCache.set(key,entry);}
  ctx.drawImage(entry.canvas,-48,-48);const clock=g.paracas.clock;ctx.save();for(let i=0;i<entry.eyes.length;i++){const e=entry.eyes[i],pulse=.45+.35*Math.sin(clock*2.5+i*.13)**2,glow=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,5);glow.addColorStop(0,`rgba(225,255,190,${pulse})`);glow.addColorStop(.35,`rgba(130,255,90,${pulse*.7})`);glow.addColorStop(1,'rgba(90,255,110,0)');ctx.fillStyle=glow;ctx.fillRect(e.x-5,e.y-5,10,10);}ctx.restore();
+};
+
+// Arena decoration must never remove a campaign guardian and block progression.
+const setupWithCampaignMaps=Game.prototype.setupLevel;
+Game.prototype.setupLevel=function(){setupWithCampaignMaps.call(this);if(this.mode===1&&this.boss&&!this.enemies.includes(this.boss)){
+ const spots=EntityGlove.spots(this,{x:Math.floor(COLS/2),y:Math.floor(ROWS/2)},this.boss).filter(a=>!this.paracas?.trapKeys.has(tileKey(a.x,a.y)));
+ const a=spots[0];if(a){this.boss.x=centerOf(a.x);this.boss.y=centerOf(a.y);this.boss.target=null;this.boss.origin={x:a.x,y:a.y};this.enemies.push(this.boss);}
+}};
+
+// Refill after map decoration so obstacles do not reduce the chosen NPC count.
+const setupBeforeNpcRefill=Game.prototype.setupLevel;
+Game.prototype.setupLevel=function(){setupBeforeNpcRefill.call(this);if(this.mode!==2||!Deathmatch.active(this))return;this.enemies=this.enemies.filter(e=>this.grid[e.ty]?.[e.tx]===TILE_EMPTY&&!this.paracas?.trapKeys.has(tileKey(e.tx,e.ty)));const count=Deathmatch.npcCount(this),spawns=this.players.map(p=>({x:p.tx,y:p.ty}));
+ for(let tries=0;this.enemies.length<count&&tries<count*8;tries++){const e=this.spawnEnemy(['balloom','oneal','doll'][tries%3],spawns,1);if(!e)break;if(this.paracas?.trapKeys.has(tileKey(e.tx,e.ty))){this.enemies=this.enemies.filter(a=>a!==e);continue;}e.hp=e.maxHp=2;}
 };

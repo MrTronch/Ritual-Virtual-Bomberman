@@ -344,5 +344,5 @@ const Renderer = (() => {
   }
 
   rebuild();
-  return { draw, setTheme, setScale, forceRebuild: rebuild };
+  return { draw, drawTile, setTheme, setScale, forceRebuild: rebuild };
 })();

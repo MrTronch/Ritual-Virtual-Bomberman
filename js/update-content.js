@@ -231,14 +231,13 @@ Game.prototype.showBattleSetup=function(){
  option(`TIEMPO: ${Math.floor((b.duration||120)/60)}:${String((b.duration||120)%60).padStart(2,'0')}`,d=>move('duration',[90,120,150,180],d)),
  option(`DIFICULTAD CPU: ${BOT_TIERS[b.skill].label.toUpperCase()}`,d=>move('skill',DIFFICULTY_ORDER,d)),
  option(`MODO EXTREMO: ${b.extreme?'ON · 3 BOMBAS':'OFF'}`,()=>b.extreme=!b.extreme,b.combat==='deathmatch'),
- option(`COMBATE: ${b.combat==='deathmatch'?'DEATHMATCH':'BOMBAS'}`,d=>{move('combat',['classic','deathmatch'],d);if(b.combat==='deathmatch'&&b.stage==='overdrive')b.stage='ritual';})
  ];
  if(teams)for(let i=0;i<4;i++)settings.push(option(`${i<b.humans?'J'+(i+1):'CPU'+(i-b.humans+1)}: EQUIPO ${b.teams[i]===0?'A':'B'}`,()=>{const other=b.teams.findIndex((t,j)=>j!==i&&t!==b.teams[i]);[b.teams[i],b.teams[other]]=[b.teams[other],b.teams[i]];}));
- this.ui.showOverlay({title:'BATALLA',text:'CONFIGURA LA PARTIDA · PASO 1 DE 2'+(MobileBalance.active(this)?'\nCPU ADAPTADOS A CELULAR':''),buttons:[...settings,
- {label:'CONTINUAR',action:()=>{this.saveSettings();this.showBattleMaps();}},
- {label:'VOLVER',back:true,action:()=>this.showTitle()}],help:'Elige las reglas; después selecciona el mapa.'});
+ this.ui.showOverlay({title:b.combat==='deathmatch'?'DEATHMATCH':'BATALLA',text:'CONFIGURA LA PARTIDA · PASO 1 DE 2'+(MobileBalance.active(this)?'\nCPU ADAPTADOS A CELULAR':''),buttons:[...settings,
+ {label:'VOLVER',back:true,action:()=>this.showTitle()},
+ {label:'CONTINUAR',action:()=>{this.saveSettings();this.showBattleMaps();}}],help:'Elige las reglas; después selecciona el mapa.'});
  this.ui.overlayButtons.classList.add('battle-rules');
- this.ui.buttons.forEach((entry,i)=>entry.el.classList.add(i<settings.length?'battle-setting':i===settings.length?'battle-continue':'battle-back'));
+ this.ui.buttons.forEach((entry,i)=>entry.el.classList.add(i<settings.length?'battle-setting':entry.back?'battle-back':'battle-continue'));
 };
 Game.prototype.showBattleMaps=function(){
  this.state='setup';const b=this.settings.battle,stages=['ritual','jurassic','overdrive','inca','paracas'],labels=['RITUAL VIRTUAL','JURÁSICO','UKU PACHA','SANTUARIO DEL INTI','NECRÓPOLIS DE PARACAS'];
